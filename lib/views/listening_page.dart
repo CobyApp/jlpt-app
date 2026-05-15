@@ -97,9 +97,13 @@ class _ListeningViewState extends State<_ListeningView> {
   bool _playing = false;
   bool _showMini = false;
 
-  String _audioUrl(String raw) {
-    if (raw.startsWith('http')) return raw;
-    return 'https://taba.asia/jlpt-audio/$raw';
+  /// `taba.asia/jlpt-audio/<examId>/<file>.mp3` →
+  /// `assets/audio/<examId>/<file>.mp3`. Bundled locally for offline.
+  String _assetPath(String raw) {
+    // Strip protocol + host if present; we only need the tail after jlpt-audio/.
+    final idx = raw.indexOf('jlpt-audio/');
+    final tail = idx >= 0 ? raw.substring(idx + 'jlpt-audio/'.length) : raw;
+    return 'assets/audio/$tail';
   }
 
   @override
@@ -132,7 +136,7 @@ class _ListeningViewState extends State<_ListeningView> {
 
   Future<void> _setupAudio() async {
     try {
-      await _player.setUrl(_audioUrl(widget.load.sub.audioUrl));
+      await _player.setAsset(_assetPath(widget.load.sub.audioUrl));
     } catch (e) {
       // ignore — UI still works without audio
     }

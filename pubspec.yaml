@@ -28,3 +28,14 @@ flutter:
   assets:
     - assets/data/
     - assets/data/exams/
+    - assets/audio/n1_2018-vol2/
+    - assets/audio/n1_2020-12/
+    - assets/audio/n1_2021-07/
+    - assets/audio/n1_2021-12/
+    - assets/audio/n1_2022-07/
+    - assets/audio/n1_2022-12/
+    - assets/audio/n1_2023-07/
+    - assets/audio/n1_2023-12/
+    - assets/audio/n1_2024-07/
+    - assets/audio/n1_2024-12/
+    - assets/audio/n1_2025-07/
