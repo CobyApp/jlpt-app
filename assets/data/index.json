@@ -1,0 +1,156 @@
+{
+  "generated_at": "2026-04-29T02:43:24.209928Z",
+  "exams": [
+    {
+      "id": "n1_2025-07",
+      "title": "JLPT N1 Mock Test – July 2025",
+      "file": "exams/n1_2025-07.json",
+      "questions": 66,
+      "passages": 13,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-july-2025-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 30
+    },
+    {
+      "id": "n1_december-2024-real-exam",
+      "title": "JLPT N1 Mock Test - December 2024",
+      "file": "exams/n1_2024-12.json",
+      "questions": 66,
+      "passages": 13,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-december-2024-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 30
+    },
+    {
+      "id": "n1_july-2024-real-exam",
+      "title": "JLPT N1 Mock Test – July 2024",
+      "file": "exams/n1_2024-07.json",
+      "questions": 66,
+      "passages": 13,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-july-2024-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 30
+    },
+    {
+      "id": "n1_december-2023-real-exam",
+      "title": "JLPT N1 Mock Test – December 2023",
+      "file": "exams/n1_2023-12.json",
+      "questions": 66,
+      "passages": 13,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-december-2023-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 30
+    },
+    {
+      "id": "n1_july-2023-real-exam",
+      "title": "JLPT N1 Mock Test – July 2023",
+      "file": "exams/n1_2023-07.json",
+      "questions": 66,
+      "passages": 13,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-july-2023-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 30
+    },
+    {
+      "id": "n1_december-2022-real-exam",
+      "title": "JLPT N1 Mock Test – December 2022",
+      "file": "exams/n1_2022-12.json",
+      "questions": 66,
+      "passages": 13,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-december-2022-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 30
+    },
+    {
+      "id": "n1_july-2022-real-exam",
+      "title": "JLPT N1 Mock Test – July 2022",
+      "file": "exams/n1_2022-07.json",
+      "questions": 68,
+      "passages": 12,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-july-2022-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 35
+    },
+    {
+      "id": "n1_december-2021-real-exam",
+      "title": "JLPT N1 Mock Test – December 2021",
+      "file": "exams/n1_2021-12.json",
+      "questions": 69,
+      "passages": 12,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-december-2021-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 35
+    },
+    {
+      "id": "n1_july-2021-real-exam",
+      "title": "JLPT N1 Mock Test – July 2021",
+      "file": "exams/n1_2021-07.json",
+      "questions": 69,
+      "passages": 12,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-july-2021-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 35
+    },
+    {
+      "id": "n1_december-2020-real-exam",
+      "title": "JLPT N1 Mock Test – December 2020",
+      "file": "exams/n1_2020-12.json",
+      "questions": 68,
+      "passages": 12,
+      "source": "https://nihonez.com/jlpt-test/jlpt-n1-past-test-december-2020-real-exam/",
+      "listening_subsections": 5,
+      "listening_questions": 35
+    },
+    {
+      "id": "n1_official-vol2-2018",
+      "title": "JLPT Practice Workbook Vol. 2 (2018) – N1",
+      "file": "exams/n1_2018-vol2.json",
+      "questions": 70,
+      "passages": 12,
+      "source": "https://nihonez.com/jlpt-test/jlpt-official-practice-workbook-vol-2-published-2018-n1/",
+      "listening_subsections": 5,
+      "listening_questions": 37
+    }
+  ],
+  "vocab": {
+    "file": "vocab.json",
+    "count": 2699,
+    "source": "jamsinclair/open-anki-jlpt-decks (MIT)"
+  },
+  "kanji_n1": {
+    "file": "kanji_n1.json",
+    "count": 1232,
+    "source": "davidluzgouveia/kanji-data (MIT, jlpt_new=1)"
+  },
+  "kanji_all": {
+    "file": "kanji_all.json",
+    "count": 13108,
+    "source": "davidluzgouveia/kanji-data (MIT)"
+  },
+  "official_pdfs": {
+    "mondai": "../jlpt_official/N1-mondai.pdf",
+    "seikai": "../jlpt_official/N1-seikai.pdf",
+    "kaitou": "../jlpt_official/N1-kaitou.pdf",
+    "source": "jlpt.jp/samples/"
+  },
+  "category_totals": {
+    "Kanji Reading": 66,
+    "Contextually-defined Expressions": 77,
+    "Paraphrases": 66,
+    "Usage": 66,
+    "Sentential Grammar 1 (Selecting grammar form)": 110,
+    "Sentential Grammar 2 (Sentence composition)": 55,
+    "Text Grammar": 45,
+    "Comprehension (Short passages)": 44,
+    "Comprehension (Mid-size passages)": 96,
+    "Comprehension (Long passages)": 33,
+    "Integrated Comprehension": 26,
+    "Thematic Comprehension": 34,
+    "Information Retrieval": 22,
+    "task-based-comprehension": 60,
+    "comprehension-of-key-points": 71,
+    "comprehension-general-outline": 60,
+    "quick-response": 132,
+    "listening-integrated-comprehension": 34
+  }
+}

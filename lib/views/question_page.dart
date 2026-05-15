@@ -1,0 +1,429 @@
+/// 독해/어휘/문법 문제 풀이 화면.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../data/categories.dart';
+import '../data/data_loader.dart';
+import '../data/vocab_match.dart';
+import '../models/models.dart';
+import '../state/store.dart';
+import '../theme.dart';
+import '../widgets/japanese_text.dart';
+import '../widgets/vocab_sheet.dart';
+
+class QuestionPage extends StatefulWidget {
+  final String examId;
+  final int n;
+  final int? from;
+  final int? to;
+  const QuestionPage({
+    super.key,
+    required this.examId,
+    required this.n,
+    this.from,
+    this.to,
+  });
+
+  @override
+  State<QuestionPage> createState() => _QuestionPageState();
+}
+
+class _QuestionPageState extends State<QuestionPage> {
+  late Future<_Load> _f;
+
+  @override
+  void initState() {
+    super.initState();
+    _f = _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant QuestionPage old) {
+    super.didUpdateWidget(old);
+    if (old.examId != widget.examId || old.n != widget.n) {
+      _f = _load();
+    }
+  }
+
+  Future<_Load> _load() async {
+    final exam = await DataLoader.instance.loadExam(widget.examId);
+    final vocab = await DataLoader.instance.loadVocab();
+    final kanjiKo = await DataLoader.instance.loadKanjiKo();
+    final idx = VocabIndex.build(vocab);
+    final q = exam.questions.firstWhere(
+      (x) => x.n == widget.n,
+      orElse: () => throw Exception('문제 ${widget.n}을 찾을 수 없습니다.'),
+    );
+    await Store.instance.setLast(widget.examId, widget.n);
+    return _Load(exam, q, idx, kanjiKo);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<_Load>(
+      future: _f,
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          if (snap.hasError) {
+            return Scaffold(body: Center(child: Text('${snap.error}')));
+          }
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
+        }
+        return _QuestionView(
+          load: snap.data!,
+          examId: widget.examId,
+          n: widget.n,
+          fromN: widget.from,
+          toN: widget.to,
+        );
+      },
+    );
+  }
+}
+
+class _Load {
+  final Exam exam;
+  final Question q;
+  final VocabIndex idx;
+  final Map<String, List<String>> kanjiKo;
+  _Load(this.exam, this.q, this.idx, this.kanjiKo);
+}
+
+class _QuestionView extends StatefulWidget {
+  final _Load load;
+  final String examId;
+  final int n;
+  final int? fromN;
+  final int? toN;
+  const _QuestionView({
+    required this.load,
+    required this.examId,
+    required this.n,
+    required this.fromN,
+    required this.toN,
+  });
+
+  @override
+  State<_QuestionView> createState() => _QuestionViewState();
+}
+
+class _QuestionViewState extends State<_QuestionView> {
+  int _picked = -1;
+  bool _graded = false;
+
+  int get _min => widget.fromN ?? 1;
+  int get _max => widget.toN ?? widget.load.exam.questions.length;
+
+  void _select(int i) {
+    if (_graded) return;
+    setState(() => _picked = i);
+  }
+
+  Future<void> _submit() async {
+    if (_picked < 0 || _graded) return;
+    final correct = _picked == widget.load.q.correct;
+    await Store.instance.recordAnswer(
+        widget.examId, widget.load.q.n, _picked, correct);
+    setState(() => _graded = true);
+  }
+
+  void _navigate(int n) {
+    final qs = widget.fromN != null && widget.toN != null
+        ? '?from=${widget.fromN}&to=${widget.toN}'
+        : '';
+    context.go('/exam/${widget.examId}/q/$n$qs');
+  }
+
+  void _gotoListening(Exam exam) {
+    context.go('/exam/${widget.examId}/listen/1');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = widget.load;
+    final n = widget.n;
+    final furi = Store.instance.getSettings().furigana;
+    final position = (n - _min + 1).clamp(1, _max - _min + 1);
+    final rangeTotal = (_max - _min + 1).clamp(1, 999);
+    final progress = position / rangeTotal;
+
+    final isLast = n >= _max;
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/'),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('$n / $_max',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            Text(categoryKo(l.q.category),
+                style: const TextStyle(fontSize: 11, color: textMuted)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await Store.instance.setSettings(Store.instance
+                  .getSettings()
+                  .copyWith(furigana: !furi));
+              if (mounted) setState(() {});
+            },
+            child: Text('후리가나 ${furi ? 'ON' : 'OFF'}',
+                style: TextStyle(
+                  color: furi ? accentPrimary : textMuted,
+                  fontWeight: FontWeight.w700,
+                )),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(3),
+          child: LinearProgressIndicator(
+            value: progress,
+            backgroundColor: const Color(0xFFE5E7EB),
+            color: accentPrimary,
+            minHeight: 3,
+          ),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: [
+          if (l.q.srcLabel != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                '${l.q.srcLabel} · ${l.q.srcN}',
+                style: const TextStyle(fontSize: 12, color: textMuted),
+              ),
+            ),
+          if (l.q.passage != null && l.exam.passages[l.q.passage] != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: cardBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  JapaneseText(
+                    text: l.exam.passages[l.q.passage]!.ja,
+                    index: l.idx,
+                    furigana: furi,
+                    onWordTap: (e) => VocabSheet.show(
+                      context,
+                      entry: e,
+                      kanjiKo: l.kanjiKo,
+                    ),
+                  ),
+                  if (l.exam.passages[l.q.passage]!.ko != null) ...[
+                    const SizedBox(height: 10),
+                    ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: EdgeInsets.zero,
+                      title: const Text('한국어 번역',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            l.exam.passages[l.q.passage]!.ko!,
+                            style: const TextStyle(
+                                fontSize: 14, height: 1.6, color: Color(0xFF374151)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          if (l.q.stem.isNotEmpty)
+            JapaneseText(
+              text: l.q.stem,
+              index: l.idx,
+              furigana: furi,
+              underline: l.q.stemU,
+              baseStyle: const TextStyle(
+                fontSize: 17,
+                height: 1.7,
+                fontWeight: FontWeight.w600,
+              ),
+              onWordTap: (e) =>
+                  VocabSheet.show(context, entry: e, kanjiKo: l.kanjiKo),
+            )
+          else
+            const Text(
+              '(빈칸 채우기 — 위 지문 참조)',
+              style: TextStyle(fontSize: 14, color: textMuted),
+            ),
+          const SizedBox(height: 16),
+          ...List.generate(l.q.opts.length, (i) {
+            final picked = i == _picked;
+            final isCorrect = _graded && i == l.q.correct;
+            final isWrong = _graded && i == _picked && i != l.q.correct;
+            Color bg = Colors.white;
+            Color border = cardBorder;
+            Color fg = const Color(0xFF111827);
+            if (isCorrect) {
+              bg = const Color(0xFFDCFCE7);
+              border = const Color(0xFF15803D);
+            } else if (isWrong) {
+              bg = const Color(0xFFFEE2E2);
+              border = const Color(0xFFB91C1C);
+            } else if (picked) {
+              bg = accentSoft;
+              border = accentPrimary;
+              fg = accentPrimary;
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Material(
+                color: bg,
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: _graded ? null : () => _select(i),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: border, width: picked || isCorrect || isWrong ? 1.5 : 1),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${i + 1}.',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: fg,
+                            )),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: JapaneseText(
+                            text: l.q.opts[i],
+                            index: l.idx,
+                            furigana: furi,
+                            baseStyle: TextStyle(
+                              fontSize: 15,
+                              height: 1.5,
+                              color: fg,
+                              fontWeight: picked ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                            onWordTap: (e) => VocabSheet.show(
+                              context,
+                              entry: e,
+                              kanjiKo: l.kanjiKo,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed:
+                  (_picked < 0 || _graded) ? null : _submit,
+              style: FilledButton.styleFrom(
+                  backgroundColor: accentPrimary,
+                  disabledBackgroundColor: const Color(0xFFCBD5E1)),
+              child: Text(_graded ? '확인됨' : '정답 확인'),
+            ),
+          ),
+          if (_graded) ...[
+            const SizedBox(height: 14),
+            _Feedback(q: l.q, picked: _picked),
+          ],
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: n > _min ? () => _navigate(n - 1) : null,
+                  child: const Text('이전'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accentPrimary,
+                  ),
+                  onPressed: () {
+                    if (n < _max) {
+                      _navigate(n + 1);
+                    } else if (l.exam.listening != null) {
+                      _gotoListening(l.exam);
+                    } else {
+                      context.go('/exam/${widget.examId}');
+                    }
+                  },
+                  child: Text(
+                    isLast && l.exam.listening != null ? '청해 →' : '다음',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Feedback extends StatelessWidget {
+  final Question q;
+  final int picked;
+  const _Feedback({required this.q, required this.picked});
+
+  @override
+  Widget build(BuildContext context) {
+    final correct = picked == q.correct;
+    final verdictColor = correct ? const Color(0xFF15803D) : const Color(0xFFB91C1C);
+    final expl = (q.explKo?.isNotEmpty ?? false)
+        ? q.explKo!
+        : (q.expl.isNotEmpty ? q.expl : '(해설 없음)');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(correct ? '✓ 정답' : '✗ 오답 (정답: ${q.correct + 1}번)',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: verdictColor,
+              )),
+          const SizedBox(height: 8),
+          Text(expl,
+              style: const TextStyle(
+                  fontSize: 14, height: 1.6, color: Color(0xFF1F2937))),
+        ],
+      ),
+    );
+  }
+}

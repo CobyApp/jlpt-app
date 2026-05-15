@@ -1,0 +1,530 @@
+/// 회차 / 카테고리 진입 화면 — 영역(섹션) 다중선택.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../data/categories.dart';
+import '../data/data_loader.dart';
+import '../models/models.dart';
+import '../state/store.dart';
+import '../theme.dart';
+import 'category_listening_page.dart';
+
+class _Section {
+  final String key;
+  final int from;
+  final int to;
+  final int idx;
+  _Section(this.key, this.from, this.to, this.idx);
+  int get count => to - from + 1;
+}
+
+class ExamPage extends StatefulWidget {
+  final String examId;
+  const ExamPage({super.key, required this.examId});
+
+  @override
+  State<ExamPage> createState() => _ExamPageState();
+}
+
+class _ExamPageState extends State<ExamPage> {
+  Future<Exam>? _examF;
+  final Set<String> _selected = {};
+
+  bool get _isCategoryDrill => widget.examId.startsWith('cat:');
+
+  @override
+  void initState() {
+    super.initState();
+    // 청해 카테고리는 별도 화면.
+    if (_isCategoryDrill &&
+        listeningSlugs.contains(widget.examId.substring(4))) {
+      // 빌드 후 분기 — 여기는 빈 build로 두고 build()에서 처리.
+    }
+    _examF = DataLoader.instance.loadExam(widget.examId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isCategoryDrill &&
+        listeningSlugs.contains(widget.examId.substring(4))) {
+      return CategoryListeningPage(slug: widget.examId.substring(4));
+    }
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/'),
+        ),
+        title: Text(_isCategoryDrill ? 'Category Drill' : 'Exam Overview',
+            style: const TextStyle(fontSize: 14, color: textMuted)),
+      ),
+      body: FutureBuilder<Exam>(
+        future: _examF,
+        builder: (context, snap) {
+          if (!snap.hasData) {
+            if (snap.hasError) {
+              return Center(child: Text('로드 실패: ${snap.error}'));
+            }
+            return const Center(child: CircularProgressIndicator());
+          }
+          return _buildBody(context, snap.data!);
+        },
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, Exam exam) {
+    final keyOf =
+        _isCategoryDrill ? (Question q) => q.srcLabel ?? '' : (Question q) => q.category;
+    final sections = _groupSections(exam.questions, keyOf);
+
+    final groupCatMap = <String, CategoryGroup>{};
+    for (final c in allCategories) {
+      groupCatMap[c.category] = c.group;
+    }
+
+    final byGroup = <CategoryGroup, List<_Section>>{};
+    for (final s in sections) {
+      final g = _isCategoryDrill
+          ? CategoryGroup.reading
+          : (groupCatMap[s.key] ?? CategoryGroup.reading);
+      (byGroup[g] ??= []).add(s);
+    }
+    final orderedGroups = [
+      CategoryGroup.vocab,
+      CategoryGroup.grammar,
+      CategoryGroup.reading,
+    ];
+
+    final listenSubs = exam.listening?.subsections ?? const <ListeningSubsection>[];
+    final readingQs = exam.questions.length;
+    final listenQs = listenSubs.fold<int>(0, (s, x) => s + x.questions.length);
+    final totalQ = readingQs + listenQs;
+    final totalListenAns = Store.instance.getListenProgress(exam.testId).length;
+
+    return Stack(
+      children: [
+        ListView(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 140),
+          children: [
+            _hero(exam, readingQs, listenQs, totalQ),
+            const SizedBox(height: 12),
+            if (!_isCategoryDrill)
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => context.push(
+                      '/exam/${exam.testId}/q/1?from=1&to=$readingQs'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accentPrimary,
+                  ),
+                  child: const Text('▶ 전체 시작 (1번 문제부터)'),
+                ),
+              ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: _selected.isEmpty
+                      ? null
+                      : () => setState(_selected.clear),
+                  child: const Text('선택 해제'),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      for (final s in sections) _selected.add(s.key);
+                      for (final sub in listenSubs) {
+                        _selected.add('listen:${sub.order}');
+                      }
+                    });
+                  },
+                  child: const Text('전체 선택'),
+                ),
+              ],
+            ),
+            ...(_isCategoryDrill
+                ? [_sectionGroup(context, exam, '회차', sections, isListen: false)]
+                : orderedGroups
+                    .where((g) => byGroup.containsKey(g))
+                    .map((g) => _sectionGroup(
+                        context, exam, g.label, byGroup[g]!,
+                        isListen: false))
+                    .toList()),
+            if (listenSubs.isNotEmpty && !_isCategoryDrill) ...[
+              const SizedBox(height: 14),
+              _listenGroup(context, exam, listenSubs, totalListenAns, listenQs),
+            ],
+          ],
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: _actionBar(context, exam, sections, listenSubs, totalQ),
+        ),
+      ],
+    );
+  }
+
+  Widget _hero(Exam exam, int readQs, int listenQs, int totalQ) {
+    final passages = exam.passages.length;
+    final hint = _isCategoryDrill
+        ? '풀고 싶은 회차를 선택하세요. (복수 선택 가능)'
+        : '풀고 싶은 영역을 선택하거나, 전체 시작으로 첫 문제부터 풀어보세요.';
+    final total = _isCategoryDrill
+        ? '${exam.questions.length}문제 · $passages지문'
+        : '총 $totalQ문제 (어휘·문법·독해 $readQs${listenQs > 0 ? ' + 청해 $listenQs' : ''}) · $passages지문';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          exam.title,
+          style:
+              const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.25),
+        ),
+        const SizedBox(height: 6),
+        Text(total,
+            style:
+                const TextStyle(fontSize: 13, color: textMuted, height: 1.4)),
+        const SizedBox(height: 4),
+        Text(hint,
+            style:
+                const TextStyle(fontSize: 12, color: textMuted, height: 1.4)),
+      ],
+    );
+  }
+
+  List<_Section> _groupSections(
+      List<Question> qs, String Function(Question) keyOf) {
+    final out = <_Section>[];
+    for (final q in qs) {
+      final k = keyOf(q);
+      if (out.isNotEmpty && out.last.key == k) {
+        out[out.length - 1] = _Section(k, out.last.from, q.n, out.last.idx);
+      } else {
+        out.add(_Section(k, q.n, q.n, out.length));
+      }
+    }
+    return out;
+  }
+
+  Widget _sectionGroup(
+    BuildContext context,
+    Exam exam,
+    String groupLabel,
+    List<_Section> list, {
+    required bool isListen,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            groupLabel,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: isListen ? listeningPrimary : accentPrimary,
+              letterSpacing: 0.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...list.map((s) {
+            final selected = _selected.contains(s.key);
+            final label = _isCategoryDrill
+                ? s.key
+                : categoryKo(s.key);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _sectionTile(
+                number: _isCategoryDrill
+                    ? '회차 ${s.idx + 1}'
+                    : '問題${s.idx + 1}',
+                label: label,
+                meta: '${s.from}–${s.to} · ${s.count}문제',
+                selected: selected,
+                isListen: false,
+                onTap: () => setState(() {
+                  if (selected) {
+                    _selected.remove(s.key);
+                  } else {
+                    _selected.add(s.key);
+                  }
+                }),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _listenGroup(
+    BuildContext context,
+    Exam exam,
+    List<ListeningSubsection> subs,
+    int answered,
+    int totalListen,
+  ) {
+    final prog = Store.instance.getListenProgress(exam.testId);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('청해',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: listeningPrimary,
+                  letterSpacing: 0.4,
+                )),
+            const SizedBox(width: 8),
+            Text(
+              answered > 0
+                  ? '$answered/$totalListen 완료'
+                  : '${subs.length}영역 · $totalListen문제',
+              style: const TextStyle(fontSize: 11, color: textMuted),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...subs.map((sub) {
+          final key = 'listen:${sub.order}';
+          final selected = _selected.contains(key);
+          final answered =
+              sub.questions.where((q) => prog.containsKey(q.id)).length;
+          final ko = listeningShortKo[sub.type] ?? sub.englishTitle;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _sectionTile(
+              number: '問題${sub.order}',
+              label: ko,
+              meta:
+                  '🔊 音声 · ${answered > 0 ? '$answered/${sub.questions.length}문제' : '${sub.questions.length}문제'}',
+              selected: selected,
+              isListen: true,
+              onTap: () => setState(() {
+                if (selected) {
+                  _selected.remove(key);
+                } else {
+                  _selected.add(key);
+                }
+              }),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _sectionTile({
+    required String number,
+    required String label,
+    required String meta,
+    required bool selected,
+    required bool isListen,
+    required VoidCallback onTap,
+  }) {
+    final accent = isListen ? listeningPrimary : accentPrimary;
+    return Material(
+      color: selected
+          ? (isListen ? listeningPale : accentSoft)
+          : Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? accent : cardBorder,
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: selected ? accent : const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  number,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? Colors.white : const Color(0xFF374151),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(meta,
+                        style: const TextStyle(
+                            fontSize: 11, color: textMuted)),
+                  ],
+                ),
+              ),
+              if (selected)
+                Icon(Icons.check_circle, color: accent, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionBar(
+    BuildContext context,
+    Exam exam,
+    List<_Section> sections,
+    List<ListeningSubsection> listenSubs,
+    int totalAll,
+  ) {
+    final selectedReading =
+        sections.where((s) => _selected.contains(s.key)).toList();
+    final selectedListen = listenSubs
+        .where((s) => _selected.contains('listen:${s.order}'))
+        .toList();
+    final hasSelection =
+        selectedReading.isNotEmpty || selectedListen.isNotEmpty;
+    final selCount = selectedReading.fold<int>(0, (s, x) => s + x.count) +
+        selectedListen.fold<int>(0, (s, x) => s + x.questions.length);
+
+    String label;
+    String range;
+    if (!hasSelection) {
+      label = '영역을 선택하세요';
+      range = '총 $totalAll문제';
+    } else {
+      final total = selectedReading.length + selectedListen.length;
+      if (total == 1) {
+        if (selectedReading.length == 1) {
+          final s = selectedReading.first;
+          label = _isCategoryDrill
+              ? s.key
+              : '問題${s.idx + 1} ${categoryKo(s.key)}';
+          range = '${s.from}–${s.to} · ${s.count}문제';
+        } else {
+          final m = selectedListen.first;
+          label = '청해 問題${m.order} ${listeningShortKo[m.type] ?? ''}'.trim();
+          range = '${m.questions.length}문제 (청해)';
+        }
+      } else {
+        label = '$total개 영역 선택';
+        final tags = [
+          ...selectedReading.map((s) =>
+              _isCategoryDrill ? s.key : '問題${s.idx + 1}'),
+          ...selectedListen.map((m) => '청해${m.order}'),
+        ].join(', ');
+        range = '$tags · $selCount문제';
+      }
+    }
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: cardBorder),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('선택',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: textMuted,
+                          letterSpacing: 1.4,
+                          fontWeight: FontWeight.w700)),
+                  Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      )),
+                  Text(range,
+                      style: const TextStyle(
+                          fontSize: 11, color: textMuted)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              onPressed: !hasSelection
+                  ? null
+                  : () {
+                      final sectionKeys = [
+                        ...selectedReading.map((s) => s.key),
+                        ...selectedListen.map((m) => 'listen:${m.order}'),
+                      ];
+                      final params = sectionKeys.isEmpty
+                          ? ''
+                          : '?sections=${Uri.encodeQueryComponent(sectionKeys.join(","))}';
+                      context.push('/exam/${exam.testId}/words$params');
+                    },
+              child: const Text('📖 단어'),
+            ),
+            const SizedBox(width: 6),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: accentPrimary),
+              onPressed: !hasSelection
+                  ? null
+                  : () {
+                      if (selectedReading.isEmpty &&
+                          selectedListen.isNotEmpty) {
+                        final m = selectedListen.first.order;
+                        context.push('/exam/${exam.testId}/listen/$m');
+                        return;
+                      }
+                      final from = selectedReading
+                          .map((s) => s.from)
+                          .reduce((a, b) => a < b ? a : b);
+                      final to = selectedReading
+                          .map((s) => s.to)
+                          .reduce((a, b) => a > b ? a : b);
+                      context.push(
+                          '/exam/${exam.testId}/q/$from?from=$from&to=$to');
+                    },
+              child: const Text('시작 →'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
