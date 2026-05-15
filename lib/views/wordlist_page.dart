@@ -180,17 +180,11 @@ class _WordlistPageState extends State<WordlistPage> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: Text(l.exam.title,
-              style: const TextStyle(
-                  fontSize: 14, color: textMuted, fontWeight: FontWeight.w700)),
-        ),
         SizedBox(
-          height: 44,
+          height: 52,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             children: [
               _tab('all', '전체', isAll, () {
                 setState(_active.clear);
@@ -299,26 +293,32 @@ class _WordlistPageState extends State<WordlistPage> {
     final color = isListen ? listeningPrimary : accentPrimary;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Material(
-        color: active ? color : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: active ? color : cardBorder),
-            ),
-            padding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 8),
-            child: Text(label,
+      // Center 로 감싸서 horizontal ListView 의 cross-axis 안에서 수직 정렬.
+      child: Center(
+        child: Material(
+          color: active ? color : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: onTap,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: active ? color : cardBorder),
+              ),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 7),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
+                  height: 1.0,
                   fontWeight: FontWeight.w700,
                   color: active ? Colors.white : color,
-                )),
+                ),
+              ),
+            ),
           ),
         ),
       ),

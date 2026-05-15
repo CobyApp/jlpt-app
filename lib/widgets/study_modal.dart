@@ -153,7 +153,12 @@ class _StudyModalState extends State<StudyModal>
           ),
         ),
       ),
-      body: done ? _finished() : _card(),
+      // 홈인디케이터 영역까지 안전하게 패딩 확보.
+      body: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 12),
+        child: done ? _finished() : _card(),
+      ),
     );
   }
 
@@ -219,7 +224,7 @@ class _StudyModalState extends State<StudyModal>
       hanjas.add((ch, v.isNotEmpty ? v[0] : '', v.length > 1 ? v[1] : ''));
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       child: Column(
         children: [
           Expanded(
