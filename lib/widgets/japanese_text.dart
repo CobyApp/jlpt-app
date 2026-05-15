@@ -1,11 +1,9 @@
 /// 일본어 텍스트를 vocab-match로 토크나이즈해서 표시.
 ///
-/// 두 가지 시각 강조를 명확히 구분:
-///  - **vocab 매치 단어 (탭→사전)**: 옅은 파란 글자 + 옅은 노란 하이라이트
-///    (밑줄 없음). "탭해서 뜻 볼 수 있음" 만 암시.
-///  - **출제 어휘 (stem_u, 한자읽기 문제의 대상 단어)**: 굵은 검정 글자 + 두꺼운
-///    빨강 솔리드 밑줄. 시험에서 "이 단어를 봐 달라" 는 강한 신호.
-///    이 구간 안의 vocab 매치는 파란색 대신 검정 굵게 유지하되 탭은 가능.
+/// 두 가지 시각 강조를 밑줄 스타일로만 구분 (글자색은 둘 다 검정):
+///  - **vocab 매치 단어 (탭→사전)**: 검정 글자 + 얇은 검정 점선 밑줄.
+///  - **출제 어휘 (stem_u)**: 굵은 검정 글자 + 두꺼운 검정 솔리드 밑줄.
+///    이 구간 안의 vocab 매치는 출제 어휘 스타일을 유지 (탭만 가능).
 ///
 /// 후리가나 ON 시: 매치된 단어 뒤에 작은 회색 (가나) 를 인라인 표시 — 줄높이가
 /// 들쭉날쭉해지지 않도록 widget-span ruby 대신 inline () 사용.
@@ -35,11 +33,10 @@ class JapaneseText extends StatelessWidget {
     this.onWordTap,
   });
 
-  // Visual tokens — vocab 와 출제 어휘를 확실히 구분하는 두 가지 강조.
-  static const _vocabColor = Color(0xFF1D4ED8);
-  static const _vocabBg = Color(0x261D4ED8); // 15% blue tint
-  static const _targetColor = Color(0xFF111827);
-  static const _targetUnderline = Color(0xFFB91C1C); // red-700
+  // 두 강조는 글자색이 아니라 밑줄의 굵기/스타일로만 구분된다.
+  static const _ink = Color(0xFF111827);
+  static const _vocabUnderline = Color(0xFF111827); // 점선
+  static const _targetUnderline = Color(0xFF111827); // 솔리드, 더 두껍게
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +51,10 @@ class JapaneseText extends StatelessWidget {
         final mid = text.substring(i, i + under.length);
         final after = text.substring(i + under.length);
         final targetStyle = style.copyWith(
-          color: _targetColor,
+          color: _ink,
           fontWeight: FontWeight.w800,
           decoration: TextDecoration.underline,
-          decorationThickness: 2.6,
+          decorationThickness: 3.4,
           decorationColor: _targetUnderline,
         );
         return Text.rich(
@@ -127,11 +124,13 @@ class JapaneseText extends StatelessWidget {
       );
     }
 
-    // 일반 본문의 vocab 단어 — 파란 글자 + 옅은 파란 배경 (밑줄 없음).
+    // 일반 본문의 vocab 단어 — 검정 글자 + 얇은 검정 점선 밑줄.
     final wordStyle = style.copyWith(
-      color: _vocabColor,
-      fontWeight: FontWeight.w600,
-      background: Paint()..color = _vocabBg,
+      color: _ink,
+      decoration: TextDecoration.underline,
+      decorationStyle: TextDecorationStyle.dotted,
+      decorationColor: _vocabUnderline,
+      decorationThickness: 1.2,
     );
 
     if (!furigana || e.r.isEmpty || e.r == e.w) {
