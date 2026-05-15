@@ -41,6 +41,7 @@ class Store extends ChangeNotifier {
   static const _kWordbook = 'jlpt:wordbook';
   static const _kListenProgress = 'jlpt:listen-progress';
   static const _kHomeTab = 'jlpt:home-tab';
+  static const _kSrs = 'jlpt:srs';
 
   bool get ready => _ready;
 
@@ -212,6 +213,56 @@ class Store extends ChangeNotifier {
     await _writeMap(_kProgress, {});
     await _writeMap(_kListenProgress, {});
     await _prefs.remove(_kLast);
+    notifyListeners();
+  }
+
+  // ── SRS ──
+  Map<String, SrsRec> getAllSrs() {
+    final all = _readMap(_kSrs);
+    final out = <String, SrsRec>{};
+    all.forEach((k, v) {
+      if (v is Map<String, dynamic>) out[k] = SrsRec.fromJson(v);
+    });
+    return out;
+  }
+
+  SrsRec getSrs(String w) => getAllSrs()[w] ?? const SrsRec();
+
+  Future<void> recordSrs(String w, SrsAction action) async {
+    final all = _readMap(_kSrs);
+    final raw = all[w];
+    var cur = raw is Map<String, dynamic>
+        ? SrsRec.fromJson(raw)
+        : const SrsRec();
+    final ts = _ts();
+    final seen = cur.seen + 1;
+    int level = cur.level;
+    int correct = cur.correct;
+    int wrong = cur.wrong;
+    switch (action) {
+      case SrsAction.again:
+        wrong += 1;
+        level = level >= 0 ? (level - 1).clamp(0, 5) : 0;
+      case SrsAction.easy:
+        correct += 1;
+        level = level < 0 ? 1 : (level + 1).clamp(0, 5);
+      case SrsAction.skip:
+        if (level < 0) level = 0;
+    }
+    cur = cur.copyWith(
+      level: level,
+      seen: seen,
+      correct: correct,
+      wrong: wrong,
+      lastTs: ts,
+    );
+    all[w] = cur.toJson();
+    await _writeMap(_kSrs, all);
+    notifyListeners();
+  }
+
+  Future<void> clearSrs() async {
+    await _writeMap(_kSrs, {});
     notifyListeners();
   }
 

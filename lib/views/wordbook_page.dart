@@ -8,6 +8,7 @@ import '../data/data_loader.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme.dart';
+import '../widgets/study_modal.dart';
 
 enum _SortKey { recent, oldest, len, reading }
 
@@ -110,7 +111,37 @@ class _WordbookPageState extends State<WordbookPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: accentPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.menu_book_rounded),
+              label: const Text('외우기 시작',
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              onPressed: list.isEmpty
+                  ? null
+                  : () {
+                      final entries = list
+                          .map((it) => b.vocab[it.w])
+                          .whereType<VocabEntry>()
+                          .toList();
+                      StudyModal.open(
+                        context,
+                        words: entries,
+                        kanjiKo: b.kanjiKo,
+                        title: '단어장 외우기',
+                      );
+                    },
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           child: Row(
             children: [
               Text('${list.length}개 단어 저장됨',

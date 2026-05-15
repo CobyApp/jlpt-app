@@ -442,7 +442,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isListen
-                                ? listeningPrimary.withOpacity(0.18)
+                                ? listeningPrimary.withValues(alpha: 0.18)
                                 : cardBorder,
                           ),
                         ),

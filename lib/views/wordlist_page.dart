@@ -10,6 +10,7 @@ import '../data/vocab_match.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme.dart';
+import '../widgets/study_modal.dart';
 
 enum _SortKey { freq, len, reading }
 
@@ -26,6 +27,7 @@ class _WordlistPageState extends State<WordlistPage> {
   late Future<_Load> _f;
   final Set<String> _active = {};
   _SortKey _sort = _SortKey.freq;
+  Map<String, List<String>> _kanjiKo = const {};
 
   @override
   void initState() {
@@ -33,6 +35,9 @@ class _WordlistPageState extends State<WordlistPage> {
     if (widget.sections != null) _active.addAll(widget.sections!);
     _f = _load();
     Store.instance.addListener(_on);
+    DataLoader.instance.loadKanjiKo().then((m) {
+      if (mounted) setState(() => _kanjiKo = m);
+    });
   }
 
   void _on() {
@@ -231,6 +236,18 @@ class _WordlistPageState extends State<WordlistPage> {
                   style: const TextStyle(
                       fontSize: 13, color: textMuted)),
               const Spacer(),
+              TextButton.icon(
+                onPressed: words.isEmpty
+                    ? null
+                    : () => StudyModal.open(
+                          context,
+                          words: words,
+                          kanjiKo: _kanjiKo,
+                          title: '${shortTitle(l.exam.title)} 외우기',
+                        ),
+                icon: const Icon(Icons.menu_book_rounded, size: 18),
+                label: const Text('외우기'),
+              ),
               DropdownButton<_SortKey>(
                 value: _sort,
                 underline: const SizedBox.shrink(),

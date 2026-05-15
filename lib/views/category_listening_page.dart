@@ -143,7 +143,7 @@ class _CategoryListeningPageState extends State<CategoryListeningPage> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: listeningPrimary.withOpacity(0.18)),
+                              color: listeningPrimary.withValues(alpha: 0.18)),
                         ),
                         padding: const EdgeInsets.all(14),
                         child: Column(

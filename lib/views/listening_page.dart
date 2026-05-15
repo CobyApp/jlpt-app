@@ -89,11 +89,13 @@ class _ListeningView extends StatefulWidget {
 
 class _ListeningViewState extends State<_ListeningView> {
   late final AudioPlayer _player;
+  final ScrollController _scroll = ScrollController();
   final Map<String, int> _picked = {};
   final Set<String> _graded = {};
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
   bool _playing = false;
+  bool _showMini = false;
 
   String _audioUrl(String raw) {
     if (raw.startsWith('http')) return raw;
@@ -106,6 +108,15 @@ class _ListeningViewState extends State<_ListeningView> {
     _player = AudioPlayer();
     _hydratePersisted();
     _setupAudio();
+    _scroll.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // Show mini-player once user scrolls past the audio card (~220px).
+    final should = _scroll.offset > 220;
+    if (should != _showMini && mounted) {
+      setState(() => _showMini = should);
+    }
   }
 
   void _hydratePersisted() {
@@ -143,6 +154,8 @@ class _ListeningViewState extends State<_ListeningView> {
 
   @override
   void dispose() {
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
     _player.dispose();
     super.dispose();
   }
@@ -212,9 +225,12 @@ class _ListeningViewState extends State<_ListeningView> {
             ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        body: Stack(
           children: [
+            ListView(
+              controller: _scroll,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+              children: [
             _subnav(context, l, widget.m),
             const SizedBox(height: 14),
             if (introPlain.isNotEmpty)
@@ -278,6 +294,98 @@ class _ListeningViewState extends State<_ListeningView> {
                 ),
               ],
             ),
+              ],
+            ),
+            // Sticky mini audio player — slides in once user scrolls past the
+            // big audio card.
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              top: _showMini ? 0 : -80,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+                  child: _miniPlayer(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _miniPlayer() {
+    final pos = _position;
+    final dur = _duration;
+    final progress = dur.inMilliseconds == 0
+        ? 0.0
+        : (pos.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0);
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(14),
+      color: Colors.white,
+      shadowColor: const Color(0x33000000),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: listeningPrimary.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            IconButton.filled(
+              onPressed: () => _playing ? _player.pause() : _player.play(),
+              icon: Icon(_playing ? Icons.pause : Icons.play_arrow, size: 18),
+              style: IconButton.styleFrom(
+                backgroundColor: listeningPrimary,
+                foregroundColor: Colors.white,
+                shape: const CircleBorder(),
+                minimumSize: const Size(34, 34),
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '問題${widget.load.sub.order} · ${_fmt(pos)} / ${_fmt(dur)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: listeningPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor:
+                          listeningPrimary.withValues(alpha: 0.12),
+                      color: listeningPrimary,
+                      minHeight: 3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                _scroll.animateTo(0,
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic);
+              },
+              icon: const Icon(Icons.unfold_more, size: 18),
+              color: textMuted,
+              tooltip: '오디오 카드로 이동',
+            ),
           ],
         ),
       ),
@@ -331,7 +439,7 @@ class _ListeningViewState extends State<_ListeningView> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: listeningPrimary.withOpacity(0.18)),
+        border: Border.all(color: listeningPrimary.withValues(alpha: 0.18)),
       ),
       child: Column(
         children: [
@@ -385,7 +493,7 @@ class _ListeningViewState extends State<_ListeningView> {
             ),
             child: Slider(
               activeColor: listeningPrimary,
-              inactiveColor: listeningPrimary.withOpacity(0.18),
+              inactiveColor: listeningPrimary.withValues(alpha: 0.18),
               value: dur.inMilliseconds == 0
                   ? 0
                   : pos.inMilliseconds

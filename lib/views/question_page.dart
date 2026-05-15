@@ -117,6 +117,32 @@ class _QuestionViewState extends State<_QuestionView> {
   int get _min => widget.fromN ?? 1;
   int get _max => widget.toN ?? widget.load.exam.questions.length;
 
+  @override
+  void initState() {
+    super.initState();
+    _hydrate();
+  }
+
+  @override
+  void didUpdateWidget(covariant _QuestionView old) {
+    super.didUpdateWidget(old);
+    if (old.load.q.id != widget.load.q.id) {
+      _picked = -1;
+      _graded = false;
+      _hydrate();
+    }
+  }
+
+  /// 이전에 풀어둔 답이 있으면 복원.
+  void _hydrate() {
+    final prog = Store.instance.getProgress(widget.examId);
+    final rec = prog[widget.load.q.n];
+    if (rec != null) {
+      _picked = rec.picked;
+      _graded = true;
+    }
+  }
+
   void _select(int i) {
     if (_graded) return;
     setState(() => _picked = i);

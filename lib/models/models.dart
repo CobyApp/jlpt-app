@@ -318,6 +318,51 @@ class WordbookEntry {
       );
 }
 
+/// SRS (Spaced Repetition) per-word state. Matches web app's `KEY_SRS`.
+/// level: -1 = never reviewed, 0..5 = mastery (5 = mastered)
+class SrsRec {
+  final int level;
+  final int seen;
+  final int correct;
+  final int wrong;
+  final int lastTs;
+
+  const SrsRec({
+    this.level = -1,
+    this.seen = 0,
+    this.correct = 0,
+    this.wrong = 0,
+    this.lastTs = 0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'level': level,
+        'seen': seen,
+        'correct': correct,
+        'wrong': wrong,
+        'lastTs': lastTs,
+      };
+
+  factory SrsRec.fromJson(Map<String, dynamic> j) => SrsRec(
+        level: (j['level'] as num?)?.toInt() ?? -1,
+        seen: (j['seen'] as num?)?.toInt() ?? 0,
+        correct: (j['correct'] as num?)?.toInt() ?? 0,
+        wrong: (j['wrong'] as num?)?.toInt() ?? 0,
+        lastTs: (j['lastTs'] as num?)?.toInt() ?? 0,
+      );
+
+  SrsRec copyWith({int? level, int? seen, int? correct, int? wrong, int? lastTs}) =>
+      SrsRec(
+        level: level ?? this.level,
+        seen: seen ?? this.seen,
+        correct: correct ?? this.correct,
+        wrong: wrong ?? this.wrong,
+        lastTs: lastTs ?? this.lastTs,
+      );
+}
+
+enum SrsAction { again, skip, easy }
+
 class LastPos {
   final String examId;
   final int questionN;
