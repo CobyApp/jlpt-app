@@ -167,6 +167,30 @@ class _QuestionViewState extends State<_QuestionView> {
     context.go('/exam/${widget.examId}/listen/1');
   }
 
+  /// 메인 CTA 의 onPressed — 미채점이면 채점, 채점 후면 다음 이동.
+  VoidCallback? _primaryAction(_Load l) {
+    if (!_graded) {
+      return _picked < 0 ? null : _submit;
+    }
+    return () {
+      if (widget.n < _max) {
+        _navigate(widget.n + 1);
+      } else if (l.exam.listening != null) {
+        _gotoListening(l.exam);
+      } else {
+        context.go('/exam/${widget.examId}');
+      }
+    };
+  }
+
+  /// 메인 CTA 의 라벨.
+  String _primaryLabel(_Load l) {
+    if (!_graded) return '정답 확인';
+    if (widget.n < _max) return '다음 →';
+    if (l.exam.listening != null) return '청해 →';
+    return '회차 완료';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = widget.load;
@@ -176,7 +200,6 @@ class _QuestionViewState extends State<_QuestionView> {
     final rangeTotal = (_max - _min + 1).clamp(1, 999);
     final progress = position / rangeTotal;
 
-    final isLast = n >= _max;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -362,49 +385,42 @@ class _QuestionViewState extends State<_QuestionView> {
               ),
             );
           }),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed:
-                  (_picked < 0 || _graded) ? null : _submit,
-              style: FilledButton.styleFrom(
-                  backgroundColor: accentPrimary,
-                  disabledBackgroundColor: const Color(0xFFCBD5E1)),
-              child: Text(_graded ? '확인됨' : '정답 확인'),
-            ),
-          ),
+          // 피드백 — 채점 후에만 표시
           if (_graded) ...[
             const SizedBox(height: 14),
             _Feedback(q: l.q, picked: _picked),
           ],
           const SizedBox(height: 16),
+          // 단일 메인 CTA — 상태에 따라 변신:
+          //   - 미선택: "정답 확인" (disabled)
+          //   - 선택 완료, 미채점: "정답 확인" (enabled) → 채점
+          //   - 채점 완료: "다음 →" / "청해 →" / "회차 완료" → 이동
+          // 왼쪽에 ← 이전 만 작게 두어 역할 분리.
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: n > _min ? () => _navigate(n - 1) : null,
-                  child: const Text('이전'),
+              OutlinedButton(
+                onPressed: n > _min ? () => _navigate(n - 1) : null,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 14),
+                  minimumSize: const Size(0, 52),
                 ),
+                child: const Text('← 이전'),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: accentPrimary,
+                    disabledBackgroundColor: const Color(0xFFCBD5E1),
+                    minimumSize: const Size(0, 52),
+                    textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                  onPressed: () {
-                    if (n < _max) {
-                      _navigate(n + 1);
-                    } else if (l.exam.listening != null) {
-                      _gotoListening(l.exam);
-                    } else {
-                      context.go('/exam/${widget.examId}');
-                    }
-                  },
-                  child: Text(
-                    isLast && l.exam.listening != null ? '청해 →' : '다음',
-                  ),
+                  onPressed: _primaryAction(l),
+                  child: Text(_primaryLabel(l)),
                 ),
               ),
             ],
