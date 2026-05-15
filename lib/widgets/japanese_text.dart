@@ -1,7 +1,9 @@
 /// 일본어 텍스트를 vocab-match로 토크나이즈해서 표시.
-/// - 단어가 매치된 segment는 탭하면 onWordTap 호출 (popover/sheet 띄우기)
-/// - 후리가나 ON: 단어 위에 한자 + 작은 가나(reading) 같이 표시
-/// - 단어 영역은 파란 점선 underline으로 클릭 가능함을 표시
+/// - 단어가 매치된 segment 는 탭하면 onWordTap 호출 (popover/sheet)
+/// - 후리가나 ON: 매치된 단어 뒤에 (작은 가나) 를 인라인 표시.
+///   - 위에 ruby 를 띄우면 줄높이가 들쭉날쭉해지므로,
+///     안정적인 줄정렬을 위해 inline () 방식을 사용.
+/// - 매치된 단어는 파란 점선 underline 으로 클릭 가능함을 표시.
 library;
 
 import 'package:flutter/gestures.dart';
@@ -44,7 +46,7 @@ class JapaneseText extends StatelessWidget {
           TextSpan(
             style: style,
             children: [
-              ..._buildSpans(before, style, context),
+              ..._buildSpans(before, style),
               ..._buildSpans(
                 mid,
                 style.copyWith(
@@ -52,9 +54,8 @@ class JapaneseText extends StatelessWidget {
                   decorationThickness: 2,
                   fontWeight: FontWeight.w700,
                 ),
-                context,
               ),
-              ..._buildSpans(after, style, context),
+              ..._buildSpans(after, style),
             ],
           ),
         );
@@ -62,12 +63,11 @@ class JapaneseText extends StatelessWidget {
     }
 
     return Text.rich(
-      TextSpan(style: style, children: _buildSpans(text, style, context)),
+      TextSpan(style: style, children: _buildSpans(text, style)),
     );
   }
 
-  List<InlineSpan> _buildSpans(
-      String src, TextStyle style, BuildContext ctx) {
+  List<InlineSpan> _buildSpans(String src, TextStyle style) {
     if (src.isEmpty) return const [];
     final segs = matchVocab(src, index);
     final spans = <InlineSpan>[];
@@ -75,13 +75,13 @@ class JapaneseText extends StatelessWidget {
       if (s.entry == null) {
         spans.add(TextSpan(text: s.text, style: style));
       } else {
-        spans.add(_wordSpan(s.entry!, style, ctx));
+        spans.add(_wordSpan(s.entry!, style));
       }
     }
     return spans;
   }
 
-  InlineSpan _wordSpan(VocabEntry e, TextStyle style, BuildContext ctx) {
+  InlineSpan _wordSpan(VocabEntry e, TextStyle style) {
     final tap = TapGestureRecognizer()
       ..onTap = () {
         if (onWordTap != null) onWordTap!(e);
@@ -93,34 +93,26 @@ class JapaneseText extends StatelessWidget {
       decorationColor: const Color(0x551D4ED8),
     );
 
+    // 후리가나 OFF, 또는 reading 이 단어와 같거나 비어있으면 그냥 단어만.
     if (!furigana || e.r.isEmpty || e.r == e.w) {
       return TextSpan(text: e.w, style: wordStyle, recognizer: tap);
     }
-    // Show reading above kanji (a simple "ruby" approximation).
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.baseline,
-      baseline: TextBaseline.alphabetic,
-      child: GestureDetector(
-        onTap: () => onWordTap?.call(e),
-        behavior: HitTestBehavior.opaque,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 1),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                e.r,
-                style: TextStyle(
-                  fontSize: (style.fontSize ?? 16) * 0.55,
-                  height: 1.0,
-                  color: const Color(0xFF6B7280),
-                ),
-              ),
-              Text(e.w, style: wordStyle.copyWith(height: 1.05)),
-            ],
+    // 후리가나 ON — 단어 뒤에 작은 (가나) 를 인라인으로.
+    return TextSpan(
+      style: wordStyle,
+      recognizer: tap,
+      children: [
+        TextSpan(text: e.w),
+        TextSpan(
+          text: '(${e.r})',
+          style: style.copyWith(
+            color: const Color(0xFF6B7280),
+            fontSize: (style.fontSize ?? 16) * 0.72,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
-      ),
+      ],
     );
   }
 }

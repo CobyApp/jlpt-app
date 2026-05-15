@@ -49,20 +49,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: FutureBuilder<IndexFile>(
-          future: _idxFuture,
-          builder: (context, snap) {
-            if (!snap.hasData) {
-              if (snap.hasError) {
-                return Center(child: Text('로드 실패: ${snap.error}'));
-              }
-              return const Center(child: CircularProgressIndicator());
+      // 상단 흰색 헤더가 status bar 까지 자연스럽게 이어지도록 body 가
+      // 화면 전체를 차지하고 내부 위젯이 SafeArea 를 직접 챙긴다.
+      body: FutureBuilder<IndexFile>(
+        future: _idxFuture,
+        builder: (context, snap) {
+          if (!snap.hasData) {
+            if (snap.hasError) {
+              return SafeArea(
+                  child: Center(child: Text('로드 실패: ${snap.error}')));
             }
-            final idx = snap.data!;
-            return _buildShell(context, idx);
-          },
-        ),
+            return const SafeArea(
+                child: Center(child: CircularProgressIndicator()));
+          }
+          final idx = snap.data!;
+          return _buildShell(context, idx);
+        },
       ),
     );
   }
@@ -82,8 +84,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     return Column(
       children: [
-        _topBar(context, total: total, answered: answered, overall: overall,
-            wbCount: wbCount, last: last),
+        // 흰색 헤더가 status bar 영역까지 확장돼서 색 끊김 없이 이어짐.
+        Material(
+          color: Colors.white,
+          child: SafeArea(
+            bottom: false,
+            child: _topBar(context,
+                total: total,
+                answered: answered,
+                overall: overall,
+                wbCount: wbCount,
+                last: last),
+          ),
+        ),
         Container(
           color: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -101,12 +114,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         ),
         Expanded(
-          child: TabBarView(
-            controller: _tab,
-            children: [
-              _examTab(context, idx),
-              _catTab(context, idx),
-            ],
+          child: SafeArea(
+            top: false,
+            child: TabBarView(
+              controller: _tab,
+              children: [
+                _examTab(context, idx),
+                _catTab(context, idx),
+              ],
+            ),
           ),
         ),
       ],
@@ -122,160 +138,146 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('JLPT N1',
-              style: TextStyle(
-                fontSize: 12,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w700,
-                color: accentPrimary,
-              )),
-          const SizedBox(height: 4),
-          const Text(
-            '오늘도 한 회차씩, 선명하게.',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              height: 1.25,
-            ),
-          ),
-          const SizedBox(height: 14),
           Row(
             children: [
+              const Text('JLPT N1',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: accentPrimary,
+                    letterSpacing: 0.4,
+                  )),
+              const SizedBox(width: 10),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                      horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              '$answered / $total',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('$answered / $total',
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700)),
+                                Text('$overall%',
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: textMuted,
+                                        fontWeight: FontWeight.w700)),
+                              ],
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 3),
                             ProgressTrack(
                               progress: total == 0 ? 0 : answered / total,
                               color: accentPrimary,
+                              height: 4,
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Text('$overall%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: textMuted,
-                            fontWeight: FontWeight.w700,
-                          )),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              _pill(
-                icon: Icons.star_rounded,
-                label: '단어장',
-                count: wbCount,
-                onTap: () => context.push('/wordbook'),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: () => context.push('/wordbook'),
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.star_rounded,
+                        color: Color(0xFFEAB308), size: 26),
+                    if (wbCount > 0)
+                      Positioned(
+                        right: -6,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: accentPrimary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$wbCount',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                tooltip: '단어장',
               ),
-              const SizedBox(width: 8),
-              _pill(
-                icon: Icons.refresh_rounded,
-                label: '초기화',
-                onTap: _confirmReset,
+              IconButton(
+                onPressed: _confirmReset,
+                icon: const Icon(Icons.refresh_rounded,
+                    color: textMuted, size: 22),
+                tooltip: '진도 초기화',
               ),
             ],
           ),
-          if (last != null) ...[
-            const SizedBox(height: 10),
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () => context.push(
-                  '/exam/${last.examId}/q/${last.questionN}'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 12),
-                decoration: BoxDecoration(
-                  color: accentSoft,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.play_arrow_rounded,
-                        color: accentPrimary),
-                    const SizedBox(width: 6),
-                    const Text('이어서 풀기',
-                        style: TextStyle(
-                          color: accentPrimary,
-                          fontWeight: FontWeight.w700,
-                        )),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${last.examId} · 문제 ${last.questionN}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF8B1538),
+          if (last != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => context.push(
+                    '/exam/${last.examId}/q/${last.questionN}'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: accentSoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.play_arrow_rounded,
+                          color: accentPrimary, size: 18),
+                      const SizedBox(width: 4),
+                      const Text('이어서',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: accentPrimary,
+                            fontWeight: FontWeight.w700,
+                          )),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${last.examId} · 문제 ${last.questionN}',
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF8B1538)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const Icon(Icons.arrow_forward, color: accentPrimary),
-                  ],
+                      const Icon(Icons.arrow_forward,
+                          color: accentPrimary, size: 14),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ],
         ],
-      ),
-    );
-  }
-
-  Widget _pill({
-    required IconData icon,
-    required String label,
-    int? count,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: const Color(0xFFF3F4F6),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: const Color(0xFF374151)),
-              const SizedBox(width: 6),
-              Text(label,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
-              if (count != null) ...[
-                const SizedBox(width: 4),
-                Text('$count',
-                    style: const TextStyle(fontSize: 12, color: textMuted)),
-              ],
-            ],
-          ),
-        ),
       ),
     );
   }

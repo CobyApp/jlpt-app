@@ -105,66 +105,65 @@ class _ExamPageState extends State<ExamPage> {
     final totalQ = readingQs + listenQs;
     final totalListenAns = Store.instance.getListenProgress(exam.testId).length;
 
-    return Stack(
+    return Column(
       children: [
-        ListView(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 140),
-          children: [
-            _hero(exam, readingQs, listenQs, totalQ),
-            const SizedBox(height: 12),
-            if (!_isCategoryDrill)
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => context.push(
-                      '/exam/${exam.testId}/q/1?from=1&to=$readingQs'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: accentPrimary,
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+            children: [
+              _hero(exam, readingQs, listenQs, totalQ),
+              const SizedBox(height: 12),
+              if (!_isCategoryDrill)
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => context.push(
+                        '/exam/${exam.testId}/q/1?from=1&to=$readingQs'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accentPrimary,
+                    ),
+                    child: const Text('▶ 전체 시작 (1번 문제부터)'),
                   ),
-                  child: const Text('▶ 전체 시작 (1번 문제부터)'),
                 ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: _selected.isEmpty
+                        ? null
+                        : () => setState(_selected.clear),
+                    child: const Text('선택 해제'),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        for (final s in sections) _selected.add(s.key);
+                        for (final sub in listenSubs) {
+                          _selected.add('listen:${sub.order}');
+                        }
+                      });
+                    },
+                    child: const Text('전체 선택'),
+                  ),
+                ],
               ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: _selected.isEmpty
-                      ? null
-                      : () => setState(_selected.clear),
-                  child: const Text('선택 해제'),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      for (final s in sections) _selected.add(s.key);
-                      for (final sub in listenSubs) {
-                        _selected.add('listen:${sub.order}');
-                      }
-                    });
-                  },
-                  child: const Text('전체 선택'),
-                ),
+              ...(_isCategoryDrill
+                  ? [_sectionGroup(context, exam, '회차', sections, isListen: false)]
+                  : orderedGroups
+                      .where((g) => byGroup.containsKey(g))
+                      .map((g) => _sectionGroup(
+                          context, exam, g.label, byGroup[g]!,
+                          isListen: false))
+                      .toList()),
+              if (listenSubs.isNotEmpty && !_isCategoryDrill) ...[
+                const SizedBox(height: 14),
+                _listenGroup(context, exam, listenSubs, totalListenAns, listenQs),
               ],
-            ),
-            ...(_isCategoryDrill
-                ? [_sectionGroup(context, exam, '회차', sections, isListen: false)]
-                : orderedGroups
-                    .where((g) => byGroup.containsKey(g))
-                    .map((g) => _sectionGroup(
-                        context, exam, g.label, byGroup[g]!,
-                        isListen: false))
-                    .toList()),
-            if (listenSubs.isNotEmpty && !_isCategoryDrill) ...[
-              const SizedBox(height: 14),
-              _listenGroup(context, exam, listenSubs, totalListenAns, listenQs),
             ],
-          ],
+          ),
         ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: _actionBar(context, exam, sections, listenSubs, totalQ),
-        ),
+        _actionBar(context, exam, sections, listenSubs, totalQ),
       ],
     );
   }
@@ -441,88 +440,101 @@ class _ExamPageState extends State<ExamPage> {
       }
     }
 
-    return SafeArea(
-      top: false,
+    // 안전영역까지 흰 배경으로 채워서 홈인디케이터 영역이 비치지 않게.
+    return Material(
+      color: Colors.white,
+      elevation: 0,
       child: Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: cardBorder),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x14000000),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
+          border: Border(top: BorderSide(color: cardBorder)),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('선택',
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: textMuted,
-                          letterSpacing: 1.4,
-                          fontWeight: FontWeight.w700)),
-                  Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      )),
-                  Text(range,
-                      style: const TextStyle(
-                          fontSize: 11, color: textMuted)),
-                ],
-              ),
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 4),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: hasSelection
+                                ? const Color(0xFF111827)
+                                : textMuted,
+                          )),
+                      const SizedBox(height: 2),
+                      Text(range,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 11, color: textMuted)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    minimumSize: const Size(0, 40),
+                  ),
+                  onPressed: !hasSelection
+                      ? null
+                      : () {
+                          final sectionKeys = [
+                            ...selectedReading.map((s) => s.key),
+                            ...selectedListen.map((m) => 'listen:${m.order}'),
+                          ];
+                          final params = sectionKeys.isEmpty
+                              ? ''
+                              : '?sections=${Uri.encodeQueryComponent(sectionKeys.join(","))}';
+                          context
+                              .push('/exam/${exam.testId}/words$params');
+                        },
+                  child: const Text('📖 단어'),
+                ),
+                const SizedBox(width: 6),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accentPrimary,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    minimumSize: const Size(0, 40),
+                  ),
+                  onPressed: !hasSelection
+                      ? null
+                      : () {
+                          if (selectedReading.isEmpty &&
+                              selectedListen.isNotEmpty) {
+                            final m = selectedListen.first.order;
+                            context.push(
+                                '/exam/${exam.testId}/listen/$m');
+                            return;
+                          }
+                          final from = selectedReading
+                              .map((s) => s.from)
+                              .reduce((a, b) => a < b ? a : b);
+                          final to = selectedReading
+                              .map((s) => s.to)
+                              .reduce((a, b) => a > b ? a : b);
+                          context.push(
+                              '/exam/${exam.testId}/q/$from?from=$from&to=$to');
+                        },
+                  child: const Text('시작 →'),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            OutlinedButton(
-              onPressed: !hasSelection
-                  ? null
-                  : () {
-                      final sectionKeys = [
-                        ...selectedReading.map((s) => s.key),
-                        ...selectedListen.map((m) => 'listen:${m.order}'),
-                      ];
-                      final params = sectionKeys.isEmpty
-                          ? ''
-                          : '?sections=${Uri.encodeQueryComponent(sectionKeys.join(","))}';
-                      context.push('/exam/${exam.testId}/words$params');
-                    },
-              child: const Text('📖 단어'),
-            ),
-            const SizedBox(width: 6),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: accentPrimary),
-              onPressed: !hasSelection
-                  ? null
-                  : () {
-                      if (selectedReading.isEmpty &&
-                          selectedListen.isNotEmpty) {
-                        final m = selectedListen.first.order;
-                        context.push('/exam/${exam.testId}/listen/$m');
-                        return;
-                      }
-                      final from = selectedReading
-                          .map((s) => s.from)
-                          .reduce((a, b) => a < b ? a : b);
-                      final to = selectedReading
-                          .map((s) => s.to)
-                          .reduce((a, b) => a > b ? a : b);
-                      context.push(
-                          '/exam/${exam.testId}/q/$from?from=$from&to=$to');
-                    },
-              child: const Text('시작 →'),
-            ),
-          ],
+          ),
         ),
       ),
     );
