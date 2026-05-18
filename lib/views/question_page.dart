@@ -243,7 +243,7 @@ class _QuestionViewState extends State<_QuestionView> {
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
-            16, 16, 16, 32 + MediaQuery.viewPaddingOf(context).bottom),
+            16, 16, 16, 48 + MediaQuery.of(context).viewPadding.bottom),
         children: [
           if (l.q.srcLabel != null)
             Padding(
@@ -347,7 +347,8 @@ class _QuestionViewState extends State<_QuestionView> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: border, width: picked || isCorrect || isWrong ? 1.5 : 1),
+                      // 보더 굵기 고정 — 선택 유무로 카드 사이즈가 밀리지 않게.
+                      border: Border.all(color: border, width: 1.5),
                     ),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 14),

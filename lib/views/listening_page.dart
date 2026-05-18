@@ -234,7 +234,7 @@ class _ListeningViewState extends State<_ListeningView> {
             ListView(
               controller: _scroll,
               padding: EdgeInsets.fromLTRB(
-                  16, 12, 16, 32 + MediaQuery.viewPaddingOf(context).bottom),
+                  16, 12, 16, 48 + MediaQuery.of(context).viewPadding.bottom),
               children: [
             _subnav(context, l, widget.m),
             const SizedBox(height: 14),
@@ -592,9 +592,8 @@ class _ListeningViewState extends State<_ListeningView> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: border,
-                          width: isPicked || isCorrect || isWrong ? 1.5 : 1),
+                      // 보더 굵기 고정 — 선택 유무로 카드 사이즈가 밀리지 않게.
+                      border: Border.all(color: border, width: 1.5),
                     ),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 12),

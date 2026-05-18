@@ -195,7 +195,7 @@ class _WordbookPageState extends State<WordbookPage> {
         Expanded(
           child: GridView.builder(
             padding: EdgeInsets.fromLTRB(
-                16, 4, 16, 32 + MediaQuery.viewPaddingOf(context).bottom),
+                16, 4, 16, 48 + MediaQuery.of(context).viewPadding.bottom),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 220,
               mainAxisSpacing: 10,

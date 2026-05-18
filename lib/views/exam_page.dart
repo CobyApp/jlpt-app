@@ -109,7 +109,7 @@ class _ExamPageState extends State<ExamPage> {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 32),
             children: [
               _hero(exam, readingQs, listenQs, totalQ),
               const SizedBox(height: 12),
@@ -330,6 +330,8 @@ class _ExamPageState extends State<ExamPage> {
     required VoidCallback onTap,
   }) {
     final accent = isListen ? listeningPrimary : accentPrimary;
+    // 선택/미선택에 따라 사이즈가 미세하게 밀리지 않도록 보더 굵기 / 슬롯을
+    // 모두 고정. 색만 바뀐다.
     return Material(
       color: selected
           ? (isListen ? listeningPale : accentSoft)
@@ -343,7 +345,7 @@ class _ExamPageState extends State<ExamPage> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected ? accent : cardBorder,
-              width: selected ? 1.5 : 1,
+              width: 1.5, // 항상 동일
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -384,8 +386,16 @@ class _ExamPageState extends State<ExamPage> {
                   ],
                 ),
               ),
-              if (selected)
-                Icon(Icons.check_circle, color: accent, size: 18),
+              // 항상 체크아이콘 슬롯을 잡아두고 opacity 로만 토글 — 선택해도 폭이 안 밀림.
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 150),
+                  opacity: selected ? 1 : 0,
+                  child: Icon(Icons.check_circle, color: accent, size: 18),
+                ),
+              ),
             ],
           ),
         ),

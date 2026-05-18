@@ -273,7 +273,7 @@ class _WordlistPageState extends State<WordlistPage> {
                 )
               : GridView.builder(
                   padding: EdgeInsets.fromLTRB(
-                      16, 4, 16, 40 + MediaQuery.viewPaddingOf(context).bottom),
+                      16, 4, 16, 48 + MediaQuery.of(context).viewPadding.bottom),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 220,
                     mainAxisSpacing: 10,

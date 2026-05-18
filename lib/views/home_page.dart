@@ -102,15 +102,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: _segmentedTabs(),
         ),
         Expanded(
-          child: SafeArea(
-            top: false,
-            child: TabBarView(
-              controller: _tab,
-              children: [
-                _examTab(context, idx),
-                _catTab(context, idx),
-              ],
-            ),
+          child: TabBarView(
+            controller: _tab,
+            children: [
+              _examTab(context, idx),
+              _catTab(context, idx),
+            ],
           ),
         ),
       ],
@@ -420,9 +417,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Widget _examTab(BuildContext context, IndexFile idx) {
-    // 회차별 짧은 라벨 + 회차 번호 매핑용 인덱스
+    final bottomSafe = MediaQuery.of(context).viewPadding.bottom;
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 48),
+      padding: EdgeInsets.fromLTRB(16, 4, 16, 48 + bottomSafe),
       itemCount: idx.exams.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, i) {
@@ -585,8 +582,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     for (final c in allCategories) {
       (byGroup[c.group] ??= []).add(c);
     }
+    final bottomSafe = MediaQuery.of(context).viewPadding.bottom;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 48),
+      padding: EdgeInsets.fromLTRB(16, 4, 16, 48 + bottomSafe),
       children: byGroup.entries.map((g) {
         final isListen = g.key == CategoryGroup.listening;
         final groupColor = isListen ? listeningPrimary : brandPrimary;
