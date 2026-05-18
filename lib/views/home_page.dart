@@ -524,28 +524,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  // 영역별 이모지 — 1020 톤의 친근한 아이콘
-  static const Map<String, String> _catEmoji = {
-    'kanji-reading': '🈳',
-    'contextual': '🧠',
-    'paraphrases': '🔄',
-    'usage': '✍️',
-    'grammar-form': '🧩',
-    'sentence-build': '🪄',
-    'text-grammar': '📜',
-    'short-passage': '📄',
-    'mid-passage': '📃',
-    'long-passage': '📚',
-    'integrated': '🔗',
-    'thematic': '💭',
-    'info-retrieval': '🔎',
-    'listen-task': '🎯',
-    'listen-key': '📍',
-    'listen-outline': '🗺️',
-    'listen-quick': '⚡',
-    'listen-integrated': '🎧',
-  };
-
   Widget _catTab(BuildContext context, IndexFile idx) {
     final byGroup = <CategoryGroup, List<CategoryDef>>{};
     for (final c in allCategories) {
@@ -608,7 +586,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   final pct = total == 0
                       ? 0
                       : ((answered / total) * 100).round();
-                  final emoji = _catEmoji[c.slug] ?? '📘';
                   return Material(
                     color: cardBg,
                     borderRadius: BorderRadius.circular(20),
@@ -622,87 +599,57 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           boxShadow: softShadow,
                         ),
                         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                        child: Stack(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 우상단 큰 이모지 — 스티커 데코
-                            Positioned(
-                              top: -2,
-                              right: -4,
+                            // 상단: 진도 칩 (% 또는 NEW)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: answered > 0 ? groupColor : groupSoft,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                               child: Text(
-                                emoji,
-                                style: const TextStyle(fontSize: 34),
+                                answered > 0 ? '$pct%' : 'NEW',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: answered > 0
+                                      ? Colors.white
+                                      : groupColor,
+                                ),
                               ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (answered > 0)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: groupColor,
-                                      borderRadius:
-                                          BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '$pct%',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: groupSoft,
-                                      borderRadius:
-                                          BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      'NEW',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: groupColor,
-                                      ),
-                                    ),
-                                  ),
-                                const Spacer(),
-                                Text(
-                                  categoryKo(c.category),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.2,
-                                    color: ink,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 6),
-                                if (total > 0)
-                                  ProgressTrack(
-                                    progress: answered / total,
-                                    color: groupColor,
-                                    height: 4,
-                                  ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  total == 0
-                                      ? '$total문제'
-                                      : '$answered / $total',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: textMuted,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
+                            const Spacer(),
+                            Text(
+                              categoryKo(c.category),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                                color: ink,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            if (total > 0)
+                              ProgressTrack(
+                                progress: answered / total,
+                                color: groupColor,
+                                height: 4,
+                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              total == 0
+                                  ? '$total문제'
+                                  : '$answered / $total',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: textMuted,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ],
                         ),
