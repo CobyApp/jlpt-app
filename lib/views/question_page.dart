@@ -241,9 +241,13 @@ class _QuestionViewState extends State<_QuestionView> {
           ),
         ),
       ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-            16, 16, 16, 48 + MediaQuery.of(context).viewPadding.bottom),
+      // 하단 sticky CTA bar 가 따로 있으므로 ListView 내부 bottom 패딩은 24 만
+      // (CTA bar 가 자체 SafeArea 처리).
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           if (l.q.srcLabel != null)
             Padding(
@@ -387,47 +391,80 @@ class _QuestionViewState extends State<_QuestionView> {
               ),
             );
           }),
-          // 피드백 — 채점 후에만 표시
+          // 피드백 — 채점 후에만 표시. 스크롤 영역 안에 두어 사용자가
+          // CTA 누르기 전에 충분히 읽고 넘어가도록.
           if (_graded) ...[
             const SizedBox(height: 14),
             _Feedback(q: l.q, picked: _picked),
           ],
-          const SizedBox(height: 16),
-          // 단일 메인 CTA — 상태에 따라 변신:
-          //   - 미선택: "정답 확인" (disabled)
-          //   - 선택 완료, 미채점: "정답 확인" (enabled) → 채점
-          //   - 채점 완료: "다음 →" / "청해 →" / "회차 완료" → 이동
-          // 왼쪽에 ← 이전 만 작게 두어 역할 분리.
-          Row(
-            children: [
-              OutlinedButton(
-                onPressed: n > _min ? () => _navigate(n - 1) : null,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  minimumSize: const Size(0, 52),
-                ),
-                child: const Text('← 이전'),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: accentPrimary,
-                    disabledBackgroundColor: const Color(0xFFCBD5E1),
-                    minimumSize: const Size(0, 52),
-                    textStyle: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+        ],
+            ),
+          ),
+          _bottomBar(context, l, n),
+        ],
+      ),
+    );
+  }
+
+  /// 하단 고정 액션바 — 단일 메인 CTA + 좌측 ← 이전 아이콘.
+  /// Duolingo/Anki/마더텅 등 학습앱들의 공통 패턴 (sticky bottom CTA).
+  Widget _bottomBar(BuildContext context, _Load l, int n) {
+    final canBack = n > _min;
+    return Material(
+      color: cardBg,
+      elevation: 0,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: cardBg,
+          border: Border(top: BorderSide(color: cardBorder)),
+        ),
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 4),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: Row(
+              children: [
+                // ← 이전: 아이콘 전용 보조 버튼 (활성 조건에서만 보이게)
+                Material(
+                  color: canBack ? brandSurface : const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: canBack ? () => _navigate(n - 1) : null,
+                    child: SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        color: canBack ? brandPrimary : const Color(0xFFCBD5E1),
+                        size: 22,
+                      ),
                     ),
                   ),
-                  onPressed: _primaryAction(l),
-                  child: Text(_primaryLabel(l)),
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+                // 메인 CTA — 상태에 따라 변신
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accentPrimary,
+                      disabledBackgroundColor: const Color(0xFFE5E1E4),
+                      disabledForegroundColor: const Color(0xFF9CA3AF),
+                      minimumSize: const Size(0, 52),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    onPressed: _primaryAction(l),
+                    child: Text(_primaryLabel(l)),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
