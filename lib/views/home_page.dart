@@ -537,12 +537,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         final groupColor = isListen ? listeningPrimary : brandPrimary;
         final groupSoft = isListen ? listeningSurface : brandSurface;
         return Padding(
-          padding: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.only(bottom: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 10),
+                padding: const EdgeInsets.only(left: 4, bottom: 6),
                 child: Row(
                   children: [
                     Container(
