@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>JLPT N1</string>
+	<string>엔원노트</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

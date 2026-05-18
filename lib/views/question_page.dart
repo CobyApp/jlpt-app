@@ -332,9 +332,9 @@ class _QuestionViewState extends State<_QuestionView> {
               bg = const Color(0xFFFEE2E2);
               border = const Color(0xFFB91C1C);
             } else if (picked) {
-              bg = accentSoft;
-              border = accentPrimary;
-              fg = accentPrimary;
+              bg = brandSoft;
+              border = brandPrimary;
+              fg = brandPrimary;
             }
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),

@@ -197,10 +197,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('🎯', style: TextStyle(fontSize: 14)),
+                    Text('🍒', style: TextStyle(fontSize: 14)),
                     SizedBox(width: 6),
                     Text(
-                      'JLPT N1',
+                      '엔원노트',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -467,7 +467,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: const [
                         BoxShadow(
-                          color: Color(0x337C3AED),
+                          color: Color(0x33FF3366),
                           blurRadius: 18,
                           offset: Offset(0, 8),
                         ),

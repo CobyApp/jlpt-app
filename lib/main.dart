@@ -19,7 +19,7 @@ class JlptApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'JLPT N1',
+      title: '엔원노트',
       theme: buildTheme(),
       debugShowCheckedModeBanner: false,
       routerConfig: buildRouter(),
