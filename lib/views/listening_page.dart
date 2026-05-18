@@ -233,7 +233,8 @@ class _ListeningViewState extends State<_ListeningView> {
           children: [
             ListView(
               controller: _scroll,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+              padding: EdgeInsets.fromLTRB(
+                  16, 12, 16, 32 + MediaQuery.viewPaddingOf(context).bottom),
               children: [
             _subnav(context, l, widget.m),
             const SizedBox(height: 14),

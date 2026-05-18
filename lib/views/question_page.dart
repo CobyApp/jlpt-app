@@ -242,7 +242,8 @@ class _QuestionViewState extends State<_QuestionView> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: EdgeInsets.fromLTRB(
+            16, 16, 16, 32 + MediaQuery.viewPaddingOf(context).bottom),
         children: [
           if (l.q.srcLabel != null)
             Padding(

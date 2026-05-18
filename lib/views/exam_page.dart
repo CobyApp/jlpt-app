@@ -109,7 +109,7 @@ class _ExamPageState extends State<ExamPage> {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
             children: [
               _hero(exam, readingQs, listenQs, totalQ),
               const SizedBox(height: 12),

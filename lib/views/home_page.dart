@@ -422,7 +422,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _examTab(BuildContext context, IndexFile idx) {
     // 회차별 짧은 라벨 + 회차 번호 매핑용 인덱스
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 48),
       itemCount: idx.exams.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, i) {
@@ -458,7 +458,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 좌측 그라데이션 큰 회차 칩
+                  // 좌측 그라데이션 큰 칩
                   Container(
                     width: 64,
                     height: 64,
@@ -474,22 +474,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('📘',
-                            style: TextStyle(fontSize: 22)),
-                        const SizedBox(height: 2),
-                        Text(
-                          '#${idx.exams.length - i}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: const Text('📘',
+                        style: TextStyle(fontSize: 30)),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -600,7 +586,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       (byGroup[c.group] ??= []).add(c);
     }
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 48),
       children: byGroup.entries.map((g) {
         final isListen = g.key == CategoryGroup.listening;
         final groupColor = isListen ? listeningPrimary : brandPrimary;
