@@ -569,9 +569,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 crossAxisCount: 2,
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
-                // 카드 안 내용이 빽빽하지 않으니 가로:세로 = 1.6 으로 압축
-                // → 작은 직사각 타일, 라벨 바로 아래에 깔끔히 붙음.
-                childAspectRatio: 1.55,
+                // 카드 콘텐츠가 적으니 키를 확 줄여 진짜 컴팩트한 타일로.
+                childAspectRatio: 2.1,
                 children: g.value.map((c) {
                   final total = idx.categoryTotals[c.category] ?? 0;
                   final examId = 'cat:${c.slug}';
@@ -595,11 +594,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 상단: 제목 + 진도 칩
+                            // 1행: 제목 + % / NEW 칩
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Expanded(
                                   child: Text(
@@ -610,7 +609,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                       height: 1.2,
                                       color: ink,
                                     ),
-                                    maxLines: 2,
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -637,29 +636,33 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 ),
                               ],
                             ),
-                            // 하단: 진도바 + 카운트
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (total > 0)
-                                  ProgressTrack(
-                                    progress: answered / total,
-                                    color: groupColor,
-                                    height: 4,
-                                  ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  total == 0
-                                      ? '$total문제'
-                                      : '$answered / $total',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: textMuted,
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                            const SizedBox(height: 6),
+                            // 2행: 진도바
+                            if (total > 0)
+                              ProgressTrack(
+                                progress: answered / total,
+                                color: groupColor,
+                                height: 4,
+                              )
+                            else
+                              Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F1F2),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                              ],
+                              ),
+                            const SizedBox(height: 4),
+                            // 3행: 카운트
+                            Text(
+                              total == 0
+                                  ? '$total문제'
+                                  : '$answered / $total',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: textMuted,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ],
                         ),
