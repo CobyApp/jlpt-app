@@ -127,8 +127,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         builder: (context, _) {
           return Row(
             children: [
-              Expanded(child: _segChip('🎴', '회차별', 0)),
-              Expanded(child: _segChip('🧩', '영역별', 1)),
+              Expanded(child: _segChip('회차별 풀이', 0)),
+              Expanded(child: _segChip('영역별 모아풀기', 1)),
             ],
           );
         },
@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _segChip(String emoji, String label, int index) {
+  Widget _segChip(String label, int index) {
     final active = _tab.index == index;
     return GestureDetector(
       onTap: () => _tab.animateTo(index),
@@ -149,20 +149,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           borderRadius: BorderRadius.circular(10),
         ),
         alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: active ? Colors.white : ink2,
-              ),
-            ),
-          ],
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: active ? Colors.white : ink2,
+          ),
         ),
       ),
     );
@@ -281,30 +274,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   '/exam/${last.examId}/q/${last.questionN}'),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 7),
+                    horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: brandSurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: brandPrimary.withValues(alpha: 0.15)),
+                      color: brandPrimary.withValues(alpha: 0.18)),
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: const BoxDecoration(
-                        gradient: brandGradient,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('이어서',
+                    const Text('이어서 풀기',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
@@ -322,8 +301,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_rounded,
-                        color: brandPrimary, size: 14),
                   ],
                 ),
               ),

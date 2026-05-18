@@ -277,14 +277,6 @@ class _StudyModalState extends State<StudyModal>
                                 ),
                               ),
                             ),
-                          const Spacer(),
-                          Icon(
-                            _revealed
-                                ? Icons.flip_to_back
-                                : Icons.touch_app,
-                            color: textMuted,
-                            size: 18,
-                          ),
                         ],
                       ),
                       const Spacer(),

@@ -411,16 +411,6 @@ class _ExamPageState extends State<ExamPage> {
                   ],
                 ),
               ),
-              // 항상 체크아이콘 슬롯을 잡아두고 opacity 로만 토글 — 선택해도 폭이 안 밀림.
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: selected ? 1 : 0,
-                  child: Icon(Icons.check_circle, color: accent, size: 18),
-                ),
-              ),
             ],
           ),
         ),
