@@ -184,13 +184,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 decoration: BoxDecoration(
                   gradient: brandGradient,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x33FF3366),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -416,34 +409,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             onTap: () => context.push('/exam/${e.id}'),
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: cardBorder),
-                boxShadow: softShadow,
               ),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 좌측 그라데이션 큰 칩
+                  // 좌측 그라데이션 칩 — 그림자 제거, 작게
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       gradient: brandGradient,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x33FF3366),
-                          blurRadius: 18,
-                          offset: Offset(0, 8),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     alignment: Alignment.center,
                     child: const Text('📘',
-                        style: TextStyle(fontSize: 30)),
+                        style: TextStyle(fontSize: 26)),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,29 +520,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       children: byGroup.entries.map((g) {
         final isListen = g.key == CategoryGroup.listening;
         final groupColor = isListen ? listeningPrimary : brandPrimary;
-        final groupSoft = isListen ? listeningSurface : brandSurface;
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: 14),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 라벨 ↔ 그리드 사이를 최대한 붙이기 (시각적으로 0px).
-              Container(
-                margin: const EdgeInsets.only(left: 2, bottom: 2),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: groupSoft,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              // 굵은 컬러 텍스트 헤더 — 칩 배경 없애 카드와 시각적 연결.
+              Padding(
+                padding: const EdgeInsets.only(left: 2, bottom: 6),
                 child: Text(
                   g.key.label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w900,
                     color: groupColor,
-                    letterSpacing: 0.4,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
@@ -579,15 +557,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       : ((answered / total) * 100).round();
                   return Material(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       onTap: () => context.push('/exam/$examId'),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: cardBorder),
-                          boxShadow: softShadow,
                         ),
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                         child: Column(

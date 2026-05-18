@@ -235,28 +235,23 @@ class _ExamPageState extends State<ExamPage> {
     required bool isListen,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.only(top: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: isListen ? listeningSurface : brandSurface,
-              borderRadius: BorderRadius.circular(10),
-            ),
+          // 굵은 컬러 텍스트 헤더 — 칩 배경 없애 카드와 시각적 연결.
+          Padding(
+            padding: const EdgeInsets.only(left: 2, bottom: 6),
             child: Text(
               groupLabel,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: FontWeight.w900,
                 color: isListen ? listeningPrimary : brandPrimary,
-                letterSpacing: 0.4,
+                letterSpacing: 0.2,
               ),
             ),
           ),
-          const SizedBox(height: 6),
           ...list.map((s) {
             final selected = _selected.contains(s.key);
             final label = _isCategoryDrill
