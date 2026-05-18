@@ -439,31 +439,58 @@ class _Feedback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final correct = picked == q.correct;
-    final verdictColor = correct ? const Color(0xFF15803D) : const Color(0xFFB91C1C);
+    final tint = correct ? okSoft : dangerSoft;
+    final verdictColor = correct ? ok : danger;
+    final emoji = correct ? '🎉' : '🤔';
+    final verdict = correct ? '정답!' : '아쉬워요';
     final expl = (q.explKo?.isNotEmpty ?? false)
         ? q.explKo!
         : (q.expl.isNotEmpty ? q.expl : '(해설 없음)');
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: cardBorder),
+        boxShadow: softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(correct ? '✓ 정답' : '✗ 오답 (정답: ${q.correct + 1}번)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: verdictColor,
-              )),
-          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tint,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Text(emoji, style: const TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 10),
+              Text(verdict,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: verdictColor,
+                  )),
+              const SizedBox(width: 8),
+              if (!correct)
+                Text('정답 ${q.correct + 1}번',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: textMuted,
+                      fontWeight: FontWeight.w700,
+                    )),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(expl,
               style: const TextStyle(
-                  fontSize: 14, height: 1.6, color: Color(0xFF1F2937))),
+                  fontSize: 14, height: 1.65, color: ink2)),
         ],
       ),
     );
