@@ -177,33 +177,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         children: [
           Row(
             children: [
-              // 로고 칩
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: brandGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('🍒', style: TextStyle(fontSize: 14)),
-                    SizedBox(width: 6),
-                    Text(
-                      '엔원노트',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 인라인 미니 진도 칩 — 진도바 + 숫자 한 줄
+              // 진도 칩이 좌측 공간 전부 차지
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
