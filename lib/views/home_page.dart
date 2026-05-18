@@ -542,24 +542,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 라벨 칩 바로 아래에 그리드가 붙도록 최소한의 spacing 만.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(2, 0, 2, 4),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: groupSoft,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    g.key.label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: groupColor,
-                      letterSpacing: 0.4,
-                    ),
+              // 라벨 ↔ 그리드 사이를 최대한 붙이기 (시각적으로 0px).
+              Container(
+                margin: const EdgeInsets.only(left: 2, bottom: 2),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: groupSoft,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  g.key.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: groupColor,
+                    letterSpacing: 0.4,
                   ),
                 ),
               ),
@@ -591,12 +589,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           border: Border.all(color: cardBorder),
                           boxShadow: softShadow,
                         ),
-                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 1행: 제목 + % / NEW 칩
+                            // 1행: 제목 + % 칩 (NEW 배지는 제거)
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -613,27 +611,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: answered > 0
-                                        ? groupColor
-                                        : groupSoft,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    answered > 0 ? '$pct%' : 'NEW',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w900,
-                                      color: answered > 0
-                                          ? Colors.white
-                                          : groupColor,
+                                if (answered > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: groupColor,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '$pct%',
+                                      style: const TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                             const SizedBox(height: 6),
