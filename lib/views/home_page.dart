@@ -567,9 +567,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1.1,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                // 카드 안 내용이 빽빽하지 않으니 가로:세로 = 1.6 으로 압축
+                // → 작은 직사각 타일, 라벨 바로 아래에 깔끔히 붙음.
+                childAspectRatio: 1.55,
                 children: g.value.map((c) {
                   final total = idx.categoryTotals[c.category] ?? 0;
                   final examId = 'cat:${c.slug}';
@@ -590,58 +592,74 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           border: Border.all(color: cardBorder),
                           boxShadow: softShadow,
                         ),
-                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // 상단: 진도 칩 (% 또는 NEW)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: answered > 0 ? groupColor : groupSoft,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                answered > 0 ? '$pct%' : 'NEW',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: answered > 0
-                                      ? Colors.white
-                                      : groupColor,
+                            // 상단: 제목 + 진도 칩
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    categoryKo(c.category),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.2,
+                                      color: ink,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: answered > 0
+                                        ? groupColor
+                                        : groupSoft,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    answered > 0 ? '$pct%' : 'NEW',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: answered > 0
+                                          ? Colors.white
+                                          : groupColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const Spacer(),
-                            Text(
-                              categoryKo(c.category),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                height: 1.2,
-                                color: ink,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 8),
-                            if (total > 0)
-                              ProgressTrack(
-                                progress: answered / total,
-                                color: groupColor,
-                                height: 4,
-                              ),
-                            const SizedBox(height: 4),
-                            Text(
-                              total == 0
-                                  ? '$total문제'
-                                  : '$answered / $total',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: textMuted,
-                                fontWeight: FontWeight.w800,
-                              ),
+                            // 하단: 진도바 + 카운트
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (total > 0)
+                                  ProgressTrack(
+                                    progress: answered / total,
+                                    color: groupColor,
+                                    height: 4,
+                                  ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  total == 0
+                                      ? '$total문제'
+                                      : '$answered / $total',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: textMuted,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
