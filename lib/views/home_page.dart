@@ -537,38 +537,30 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         final groupColor = isListen ? listeningPrimary : brandPrimary;
         final groupSoft = isListen ? listeningSurface : brandSurface;
         return Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 12),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 라벨 칩 바로 아래에 그리드가 붙도록 최소한의 spacing 만.
               Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 6),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: groupSoft,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        g.key.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: groupColor,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
+                padding: const EdgeInsets.fromLTRB(2, 0, 2, 4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: groupSoft,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    g.key.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: groupColor,
+                      letterSpacing: 0.4,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${g.value.length}개 영역',
-                      style: const TextStyle(
-                          fontSize: 11, color: textMuted),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               GridView.count(
