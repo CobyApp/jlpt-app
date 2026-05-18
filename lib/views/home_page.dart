@@ -175,21 +175,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required int wbCount,
     LastPos? last,
   }) {
+    // 슬림 헤더 — 한 줄에 로고 / 진도칩 / 액션. 큰 progress 카드 제거.
     return Container(
       color: appBg,
-      padding: const EdgeInsets.fromLTRB(16, 10, 12, 14),
+      padding: const EdgeInsets.fromLTRB(16, 8, 12, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 상단 토글바: 로고칩 + 진도배지 + ★ + ↻
           Row(
             children: [
+              // 로고 칩
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: brandGradient,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33FF3366),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -208,14 +216,56 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ],
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
+              // 인라인 미니 진도 칩 — 진도바 + 숫자 한 줄
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('$answered/$total',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: brandPrimary,
+                              )),
+                          Text('$overall%',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: textMuted,
+                                fontWeight: FontWeight.w800,
+                              )),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      ProgressTrack(
+                        progress: total == 0 ? 0 : answered / total,
+                        color: brandPrimary,
+                        height: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               _iconChip(
                 icon: Icons.star_rounded,
                 color: gold,
                 badge: wbCount > 0 ? '$wbCount' : null,
                 onTap: () => context.push('/wordbook'),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               _iconChip(
                 icon: Icons.refresh_rounded,
                 color: textMuted,
@@ -223,120 +273,62 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // 큰 progress 카드 — 가장 시각적 중심
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: cardBorder),
-              boxShadow: softShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+          if (last != null) ...[
+            const SizedBox(height: 8),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => context.push(
+                  '/exam/${last.examId}/q/${last.questionN}'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: brandSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: brandPrimary.withValues(alpha: 0.15)),
+                ),
+                child: Row(
                   children: [
-                    Text('$answered',
-                        style: const TextStyle(
-                          fontSize: 36,
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: const BoxDecoration(
+                        gradient: brandGradient,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('이어서',
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.w900,
-                          height: 1,
                           color: brandPrimary,
                         )),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 5, left: 4),
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
-                        '/ $total 문제',
+                        '문제 ${last.questionN}',
                         style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: textMuted,
-                        ),
+                            fontSize: 11,
+                            color: textMuted,
+                            fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: brandSurface,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '$overall%',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: brandPrimary,
-                        ),
-                      ),
-                    ),
+                    const Icon(Icons.arrow_forward_rounded,
+                        color: brandPrimary, size: 14),
                   ],
                 ),
-                const SizedBox(height: 12),
-                ProgressTrack(
-                  progress: total == 0 ? 0 : answered / total,
-                  color: brandPrimary,
-                  height: 8,
-                ),
-                if (last != null) ...[
-                  const SizedBox(height: 12),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => context.push(
-                        '/exam/${last.examId}/q/${last.questionN}'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: brandSurface,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: const BoxDecoration(
-                              gradient: brandGradient,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Text('이어서 풀기',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: brandPrimary,
-                              )),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              '${last.examId} · 문제 ${last.questionN}',
-                              style: const TextStyle(
-                                  fontSize: 11, color: textMuted),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_rounded,
-                              color: brandPrimary, size: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -630,7 +622,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 crossAxisCount: 2,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                childAspectRatio: 1.25,
+                childAspectRatio: 1.1,
                 children: g.value.map((c) {
                   final total = idx.categoryTotals[c.category] ?? 0;
                   final examId = 'cat:${c.slug}';
@@ -642,45 +634,60 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   final emoji = _catEmoji[c.slug] ?? '📘';
                   return Material(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(20),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(20),
                       onTap: () => context.push('/exam/$examId'),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: cardBorder),
+                          boxShadow: softShadow,
                         ),
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                        child: Stack(
                           children: [
-                            Row(
+                            // 우상단 큰 이모지 — 스티커 데코
+                            Positioned(
+                              top: -2,
+                              right: -4,
+                              child: Text(
+                                emoji,
+                                style: const TextStyle(fontSize: 34),
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: groupSoft,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(emoji,
-                                      style:
-                                          const TextStyle(fontSize: 18)),
-                                ),
-                                const Spacer(),
                                 if (answered > 0)
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                        horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: groupSoft,
+                                      color: groupColor,
                                       borderRadius:
-                                          BorderRadius.circular(6),
+                                          BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       '$pct%',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: groupSoft,
+                                      borderRadius:
+                                          BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'NEW',
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w900,
@@ -688,36 +695,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                       ),
                                     ),
                                   ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Expanded(
-                              child: Text(
-                                categoryKo(c.category),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w900,
-                                  height: 1.25,
-                                  color: ink,
+                                const Spacer(),
+                                Text(
+                                  categoryKo(c.category),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.2,
+                                    color: ink,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ),
-                            if (total > 0)
-                              ProgressTrack(
-                                progress: answered / total,
-                                color: groupColor,
-                                height: 4,
-                              ),
-                            const SizedBox(height: 6),
-                            Text(
-                              total == 0
-                                  ? '아직 학습 전'
-                                  : '$answered / $total 문제',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: textMuted,
-                                fontWeight: FontWeight.w700,
-                              ),
+                                const SizedBox(height: 6),
+                                if (total > 0)
+                                  ProgressTrack(
+                                    progress: answered / total,
+                                    color: groupColor,
+                                    height: 4,
+                                  ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  total == 0
+                                      ? '$total문제'
+                                      : '$answered / $total',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: textMuted,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

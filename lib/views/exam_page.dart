@@ -109,32 +109,39 @@ class _ExamPageState extends State<ExamPage> {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             children: [
               _hero(exam, readingQs, listenQs, totalQ),
-              const SizedBox(height: 12),
-              if (!_isCategoryDrill)
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => context.push(
-                        '/exam/${exam.testId}/q/1?from=1&to=$readingQs'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: accentPrimary,
-                    ),
-                    child: const Text('▶ 전체 시작 (1번 문제부터)'),
-                  ),
-                ),
-              const SizedBox(height: 8),
+              // hero → 액션 행 간격 최소화 (영역별에서 너무 멀어 보이던 문제)
+              const SizedBox(height: 10),
               Row(
                 children: [
-                  TextButton(
-                    onPressed: _selected.isEmpty
-                        ? null
-                        : () => setState(_selected.clear),
-                    child: const Text('선택 해제'),
-                  ),
-                  const Spacer(),
+                  if (!_isCategoryDrill)
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => context.push(
+                            '/exam/${exam.testId}/q/1?from=1&to=$readingQs'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: accentPrimary,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12),
+                        ),
+                        child: const Text('▶ 전체 시작'),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: TextButton(
+                        onPressed: _selected.isEmpty
+                            ? null
+                            : () => setState(_selected.clear),
+                        style: TextButton.styleFrom(
+                          alignment: Alignment.centerLeft,
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Text('선택 해제'),
+                      ),
+                    ),
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -148,6 +155,18 @@ class _ExamPageState extends State<ExamPage> {
                   ),
                 ],
               ),
+              // 일반 회차에서만 선택 해제 별도 행 (전체 시작 버튼이 위 행에 있어서)
+              if (!_isCategoryDrill && _selected.isNotEmpty)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () => setState(_selected.clear),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                    ),
+                    child: const Text('선택 해제'),
+                  ),
+                ),
               ...(_isCategoryDrill
                   ? [_sectionGroup(context, exam, '회차', sections, isListen: false)]
                   : orderedGroups
@@ -170,26 +189,24 @@ class _ExamPageState extends State<ExamPage> {
 
   Widget _hero(Exam exam, int readQs, int listenQs, int totalQ) {
     final passages = exam.passages.length;
-    final hint = _isCategoryDrill
-        ? '풀고 싶은 회차를 선택하세요. (복수 선택 가능)'
-        : '풀고 싶은 영역을 선택하거나, 전체 시작으로 첫 문제부터 풀어보세요.';
+    // 카테고리 드릴: 제목 + 한 줄 메타만. 일반 회차: 메타 두 줄 (총 문제 + 힌트).
     final total = _isCategoryDrill
         ? '${exam.questions.length}문제 · $passages지문'
         : '총 $totalQ문제 (어휘·문법·독해 $readQs${listenQs > 0 ? ' + 청해 $listenQs' : ''}) · $passages지문';
+    // 카테고리 드릴은 짧은 회차 카드 형태로 모이는 화면이라 hint 생략.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           exam.title,
-          style:
-              const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.25),
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            height: 1.2,
+          ),
         ),
-        const SizedBox(height: 6),
-        Text(total,
-            style:
-                const TextStyle(fontSize: 13, color: textMuted, height: 1.4)),
         const SizedBox(height: 4),
-        Text(hint,
+        Text(total,
             style:
                 const TextStyle(fontSize: 12, color: textMuted, height: 1.4)),
       ],
@@ -218,20 +235,28 @@ class _ExamPageState extends State<ExamPage> {
     required bool isListen,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(top: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            groupLabel,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: isListen ? listeningPrimary : accentPrimary,
-              letterSpacing: 0.4,
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: isListen ? listeningSurface : brandSurface,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              groupLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: isListen ? listeningPrimary : brandPrimary,
+                letterSpacing: 0.4,
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           ...list.map((s) {
             final selected = _selected.contains(s.key);
             final label = _isCategoryDrill
