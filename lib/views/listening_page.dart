@@ -10,6 +10,7 @@ import '../data/vocab_match.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme.dart';
+import '../widgets/explanation.dart';
 import '../widgets/japanese_text.dart';
 import '../widgets/vocab_sheet.dart';
 
@@ -721,9 +722,16 @@ class _ListeningViewState extends State<_ListeningView> {
                   color: listeningPrimary,
                   letterSpacing: 0.5,
                 )),
-            const SizedBox(height: 4),
-            Text(q.explKo!,
-                style: const TextStyle(fontSize: 13.5, height: 1.55)),
+            const SizedBox(height: 6),
+            Explanation(
+              text: q.explKo!,
+              labelColor: listeningPrimary,
+              bodyStyle: const TextStyle(
+                fontSize: 13.5,
+                height: 1.6,
+                color: ink2,
+              ),
+            ),
           ],
         ],
       ),

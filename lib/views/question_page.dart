@@ -10,6 +10,7 @@ import '../data/vocab_match.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme.dart';
+import '../widgets/explanation.dart';
 import '../widgets/japanese_text.dart';
 import '../widgets/vocab_sheet.dart';
 
@@ -527,9 +528,7 @@ class _Feedback extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(expl,
-              style: const TextStyle(
-                  fontSize: 14, height: 1.65, color: ink2)),
+          Explanation(text: expl),
         ],
       ),
     );
