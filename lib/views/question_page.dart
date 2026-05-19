@@ -258,7 +258,12 @@ class _QuestionViewState extends State<_QuestionView> {
                 style: const TextStyle(fontSize: 12, color: textMuted),
               ),
             ),
-          if (l.q.passage != null && l.exam.passages[l.q.passage] != null)
+          // 정보 검색 같은 문제는 passage 가 등록은 돼있지만 ja 가 비어있는
+          // 경우가 있음 (실제 표/도표 데이터가 stem 에 들어있음). 비어있으면
+          // 빈 박스 안 보이게 스킵.
+          if (l.q.passage != null &&
+              l.exam.passages[l.q.passage] != null &&
+              l.exam.passages[l.q.passage]!.ja.trim().isNotEmpty)
             Container(
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.all(14),
