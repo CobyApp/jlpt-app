@@ -7,11 +7,12 @@ library;
 import 'package:flutter/material.dart';
 
 // ── 색 토큰 ───────────────────────────────────────────────
-// Y2K 톤의 핫 체리 레드 — 1020 키치 포인트 컬러.
-const Color brandPrimary = Color(0xFFFF3366); // hot cherry pop
-const Color brandDeep = Color(0xFFE11D48); // rose-600 (hover/press)
-const Color brandSoft = Color(0xFFFFE4E6); // rose-50 (bg tint)
-const Color brandSurface = Color(0xFFFFF1F2); // rose-50 lighter (chip bg)
+// 키치 1020 톤의 버블검 핑크 — 체리 레드보다 덜 자극적이고
+// 시험 "오답" 색으로 오인되지 않음.
+const Color brandPrimary = Color(0xFFEC4899); // pink-500 (Tailwind)
+const Color brandDeep = Color(0xFFDB2777); // pink-600 (hover/press)
+const Color brandSoft = Color(0xFFFCE7F3); // pink-100 (bg tint)
+const Color brandSurface = Color(0xFFFDF2F8); // pink-50 (chip/카드 bg)
 
 const Color listeningPrimary = Color(0xFF3B82F6); // blue-500
 const Color listeningDeep = Color(0xFF2563EB); // blue-600
@@ -33,7 +34,7 @@ const Color textMuted = Color(0xFF6B7280);
 
 const Color appBg = Color(0xFFFAF9F7);
 const Color cardBg = Color(0xFFFFFFFF);
-const Color cardBorder = Color(0xFFFCE7EB); // 살짝 핑크 기운
+const Color cardBorder = Color(0xFFFCE7F3); // 살짝 핑크 기운
 
 // ── 레거시 alias (기존 코드 호환) ─────────────────────────────
 const Color accentPrimary = brandPrimary;
@@ -75,7 +76,7 @@ ThemeData buildTheme() {
       style: FilledButton.styleFrom(
         backgroundColor: brandPrimary,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: const Color(0xFFF0E1E4),
+        disabledBackgroundColor: const Color(0xFFEDE0E7),
         disabledForegroundColor: const Color(0xFF9CA3AF),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -119,12 +120,11 @@ const List<BoxShadow> softShadow = [
   ),
 ];
 
-/// 메인 CTA 그라데이션 (핫 체리). FilledButton 안에 직접 못 쓰니까
-/// Ink + Container 조합으로 큰 버튼/배지 만들 때 활용.
+/// 메인 CTA 그라데이션 (버블검 핑크). pink-400 → pink-500.
 const LinearGradient brandGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFFF5C8A), Color(0xFFFF3366)],
+  colors: [Color(0xFFF472B6), Color(0xFFEC4899)],
 );
 
 const LinearGradient listeningGradient = LinearGradient(
