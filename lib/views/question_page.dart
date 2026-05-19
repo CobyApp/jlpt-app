@@ -375,9 +375,12 @@ class _QuestionViewState extends State<_QuestionView> {
               bg = const Color(0xFFFEE2E2);
               border = const Color(0xFFB91C1C);
             } else if (picked) {
-              bg = brandSoft;
+              // 선택된 옵션 — "오답" 처럼 안 보이게.
+              // 옅은 핑크 bg + 또렷한 핑크 보더 + 검정 글자.
+              // 텍스트가 빨갛지 않으니 에러 느낌이 사라짐.
+              bg = brandSurface;
               border = brandPrimary;
-              fg = brandPrimary;
+              fg = ink;
             }
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),

@@ -58,7 +58,7 @@ class _ExamPageState extends State<ExamPage> {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/'),
         ),
-        title: Text(_isCategoryDrill ? 'Category Drill' : 'Exam Overview',
+        title: Text(_isCategoryDrill ? '영역별 모아풀기' : '회차 풀이',
             style: const TextStyle(fontSize: 14, color: textMuted)),
       ),
       body: FutureBuilder<Exam>(
@@ -198,7 +198,7 @@ class _ExamPageState extends State<ExamPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          exam.title,
+          _isCategoryDrill ? exam.title : 'JLPT N1 · ${shortTitle(exam.title)}',
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w900,

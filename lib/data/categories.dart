@@ -116,10 +116,53 @@ String? listeningTypeFromSlug(String slug) {
 String sectionLabelKo(int num, String category) =>
     '問題$num ${categoryKo(category)}';
 
-/// 회차별 인덱스 카드에서 보이는 짧은 제목.
+/// 회차별 인덱스 카드에서 보이는 짧은 제목 — 한국어 형식.
+/// 예) "JLPT N1 Mock Test – July 2025" → "2025년 7월"
+///     "JLPT Practice Workbook 2018 Volume 2" → "워크북 2018-2"
 String shortTitle(String title) {
+  // 1) "Month YYYY" 패턴 → "YYYY년 M월"
+  const months = {
+    'january': 1, 'jan': 1,
+    'february': 2, 'feb': 2,
+    'march': 3, 'mar': 3,
+    'april': 4, 'apr': 4,
+    'may': 5,
+    'june': 6, 'jun': 6,
+    'july': 7, 'jul': 7,
+    'august': 8, 'aug': 8,
+    'september': 9, 'sep': 9, 'sept': 9,
+    'october': 10, 'oct': 10,
+    'november': 11, 'nov': 11,
+    'december': 12, 'dec': 12,
+  };
+  final monthYearRe = RegExp(
+    r'(?:JLPT\s*N1\s*Mock\s*Test\s*[–\-]\s*)?'
+    r'(' + months.keys.join('|') + r')\s+(\d{4})',
+    caseSensitive: false,
+  );
+  final m = monthYearRe.firstMatch(title);
+  if (m != null) {
+    final mo = months[m.group(1)!.toLowerCase()]!;
+    final yr = m.group(2)!;
+    return '$yr년 $mo월';
+  }
+  // 2) Practice Workbook 패턴 → "워크북 2018-2"
+  final wb = RegExp(
+    r'JLPT\s*Practice\s*Workbook\s*(\d{4})\s*(?:Volume|Vol)\s*(\d+)',
+    caseSensitive: false,
+  ).firstMatch(title);
+  if (wb != null) {
+    return '워크북 ${wb.group(1)}-${wb.group(2)}';
+  }
+  // 3) Fallback — Mock Test prefix 만 제거
   return title
-      .replaceAll(RegExp(r'^JLPT N1 Mock Test\s*[–-]\s*', caseSensitive: false), '')
-      .replaceAll(RegExp(r'^JLPT Practice Workbook\s*', caseSensitive: false), 'Workbook ')
+      .replaceAll(
+          RegExp(r'^JLPT\s*N1\s*Mock\s*Test\s*[–-]\s*',
+              caseSensitive: false),
+          '')
+      .replaceAll(
+          RegExp(r'^JLPT\s*Practice\s*Workbook\s*',
+              caseSensitive: false),
+          '워크북 ')
       .trim();
 }

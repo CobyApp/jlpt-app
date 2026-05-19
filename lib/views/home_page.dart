@@ -370,11 +370,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         final accuracy =
             answered == 0 ? 0 : ((correct / answered) * 100).round();
         final done = totalQ > 0 && answered == totalQ;
-        // 회차 짧은 라벨 (Mock Test prefix 제거)
-        final short = e.title
-            .replaceAll(RegExp(r'^JLPT N1 Mock Test\s*[–-]\s*',
-                caseSensitive: false), '')
-            .trim();
+        // 회차 짧은 라벨 — 한국어 형식 (예: "2025년 7월")
+        final short = shortTitle(e.title);
         return Material(
           color: cardBg,
           borderRadius: BorderRadius.circular(22),

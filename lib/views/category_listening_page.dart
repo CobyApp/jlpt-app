@@ -78,7 +78,7 @@ class _CategoryListeningPageState extends State<CategoryListeningPage> {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/'),
         ),
-        title: const Text('Listening Drill',
+        title: const Text('청해 모음',
             style: TextStyle(fontSize: 14, color: textMuted)),
       ),
       body: FutureBuilder<List<_Entry>>(
