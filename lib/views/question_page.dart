@@ -314,22 +314,47 @@ class _QuestionViewState extends State<_QuestionView> {
               ),
             ),
           if (l.q.stem.isNotEmpty)
-            JapaneseText(
-              // 정보 검색 등 표 형태 stem 은 옵션 출현 위치 기준으로 줄바꿈 복원.
-              text: l.q.category == 'Information Retrieval'
-                  ? formatTableStem(l.q.stem, l.q.opts)
-                  : l.q.stem,
-              index: l.idx,
-              furigana: furi,
-              underline: l.q.stemU,
-              baseStyle: const TextStyle(
-                fontSize: 17,
-                height: 1.7,
-                fontWeight: FontWeight.w600,
-              ),
-              onWordTap: (e) =>
-                  VocabSheet.show(context, entry: e, kanjiKo: l.kanjiKo),
-            )
+            // 정보 검색 처럼 stem 안에 표/지문이 들어있는 경우는 다른 독해
+            // 문제처럼 흰 박스로 감싸 시각적 일관성 확보.
+            l.q.category == 'Information Retrieval'
+                ? Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: cardBorder),
+                    ),
+                    child: JapaneseText(
+                      text: formatTableStem(l.q.stem, l.q.opts),
+                      index: l.idx,
+                      furigana: furi,
+                      underline: l.q.stemU,
+                      baseStyle: const TextStyle(
+                        fontSize: 15,
+                        height: 1.7,
+                        color: ink,
+                      ),
+                      onWordTap: (e) => VocabSheet.show(
+                        context,
+                        entry: e,
+                        kanjiKo: l.kanjiKo,
+                      ),
+                    ),
+                  )
+                : JapaneseText(
+                    text: l.q.stem,
+                    index: l.idx,
+                    furigana: furi,
+                    underline: l.q.stemU,
+                    baseStyle: const TextStyle(
+                      fontSize: 17,
+                      height: 1.7,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    onWordTap: (e) =>
+                        VocabSheet.show(context, entry: e, kanjiKo: l.kanjiKo),
+                  )
           else
             const Text(
               '(빈칸 채우기 — 위 지문 참조)',
