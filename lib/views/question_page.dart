@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/categories.dart';
 import '../data/data_loader.dart';
+import '../data/stem_format.dart';
 import '../data/vocab_match.dart';
 import '../models/models.dart';
 import '../state/store.dart';
@@ -314,7 +315,10 @@ class _QuestionViewState extends State<_QuestionView> {
             ),
           if (l.q.stem.isNotEmpty)
             JapaneseText(
-              text: l.q.stem,
+              // 정보 검색 등 표 형태 stem 은 옵션 출현 위치 기준으로 줄바꿈 복원.
+              text: l.q.category == 'Information Retrieval'
+                  ? formatTableStem(l.q.stem, l.q.opts)
+                  : l.q.stem,
               index: l.idx,
               furigana: furi,
               underline: l.q.stemU,
