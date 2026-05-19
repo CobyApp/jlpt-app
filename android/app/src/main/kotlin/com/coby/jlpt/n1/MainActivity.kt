@@ -1,4 +1,4 @@
-package com.minamidx.jlpt_app
+package com.coby.jlpt.n1
 
 import io.flutter.embedding.android.FlutterActivity
 

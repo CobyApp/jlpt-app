@@ -56,7 +56,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.minamidx.jlpt_app
+          packageName: com.coby.jlpt.n1
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
           status: completed
@@ -89,9 +89,9 @@ jobs:
 
       - name: Import signing certificate
         env:
-          BUILD_CERT_BASE64: ${{ secrets.IOS_BUILD_CERT_BASE64 }}
-          BUILD_CERT_PASSWORD: ${{ secrets.IOS_BUILD_CERT_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+          BUILD_CERT_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
+          BUILD_CERT_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           CERT_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
@@ -116,7 +116,7 @@ jobs:
 
       - name: Install provisioning profile
         env:
-          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
         run: |
           PROFILE_DIR=$HOME/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p "$PROFILE_DIR"
@@ -153,9 +153,9 @@ jobs:
 
       - name: Upload to TestFlight
         env:
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
           # API 키 파일 위치 (xcrun altool 이 자동으로 찾는 경로).
           mkdir -p ~/.appstoreconnect/private_keys

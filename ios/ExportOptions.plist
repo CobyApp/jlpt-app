@@ -20,7 +20,7 @@
   <string>${IOS_TEAM_ID}</string>
   <key>provisioningProfiles</key>
   <dict>
-    <key>com.minamidx.jlptApp</key>
+    <key>com.coby.jlpt.n1</key>
     <string>${IOS_PROVISIONING_PROFILE_NAME}</string>
   </dict>
 </dict>
