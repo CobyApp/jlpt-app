@@ -99,6 +99,14 @@ CategoryDef? categoryDefFromSlug(String slug) {
   return null;
 }
 
+/// 카테고리 영문 키 → 그룹 (어휘/문법/독해/청해).
+CategoryGroup? groupOfCategory(String category) {
+  for (final c in allCategories) {
+    if (c.category == category) return c.group;
+  }
+  return null;
+}
+
 String? listeningTypeFromSlug(String slug) {
   final c = categoryDefFromSlug(slug);
   if (c == null || c.group != CategoryGroup.listening) return null;

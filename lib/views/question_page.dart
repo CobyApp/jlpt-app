@@ -280,7 +280,11 @@ class _QuestionViewState extends State<_QuestionView> {
                       kanjiKo: l.kanjiKo,
                     ),
                   ),
-                  if (l.exam.passages[l.q.passage]!.ko != null) ...[
+                  // 독해 그룹 문제는 한국어 번역을 숨김 — 진짜 독해 훈련을 위해.
+                  // (어휘/문법 문제는 보조 자료로 보여줘도 됨)
+                  if (l.exam.passages[l.q.passage]!.ko != null &&
+                      groupOfCategory(l.q.category) !=
+                          CategoryGroup.reading) ...[
                     const SizedBox(height: 10),
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,
