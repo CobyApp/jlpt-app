@@ -34,6 +34,13 @@ android/gradlew.bat
 android/local.properties
 android/**/GeneratedPluginRegistrant.java
 android/key.properties
+android/app/upload-keystore.jks
+android/app/*.jks
+
+# CI / signing — base64 비밀들은 secrets 로만
+*.p12
+*.p8
+*.mobileprovision
 
 # macOS desktop
 macos/Pods/
