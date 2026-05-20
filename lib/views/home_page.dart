@@ -9,6 +9,7 @@ import '../data/data_loader.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme.dart';
+import '../widgets/confirm_sheet.dart';
 import '../widgets/progress_track.dart';
 
 class HomePage extends StatefulWidget {
@@ -333,23 +334,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Future<void> _confirmReset() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('진도 초기화'),
-        content: const Text(
-            '회차별 풀이 진도와 청해 진도가 모두 지워집니다.\n단어장 ★ 표시는 그대로 유지됩니다.\n진행할까요?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('취소')),
-          FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('초기화')),
-        ],
-      ),
+    final ok = await showConfirm(
+      context,
+      title: '진도 초기화',
+      message: '회차별 풀이 진도와 청해 진도가 모두 지워져요.\n단어장 ★ 표시는 그대로 유지됩니다.',
+      confirmLabel: '초기화',
+      cancelLabel: '취소',
+      destructive: true,
+      icon: Icons.refresh_rounded,
     );
-    if (ok == true) await Store.instance.clearAllProgress();
+    if (ok) await Store.instance.clearAllProgress();
   }
 
   Widget _examTab(BuildContext context, IndexFile idx) {

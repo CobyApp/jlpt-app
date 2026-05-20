@@ -8,6 +8,7 @@ import '../data/data_loader.dart';
 import '../models/models.dart';
 import '../state/store.dart';
 import '../theme.dart';
+import '../widgets/confirm_sheet.dart';
 import '../widgets/study_modal.dart';
 
 enum _SortKey { recent, oldest, len, reading }
@@ -168,24 +169,16 @@ class _WordbookPageState extends State<WordbookPage> {
               const SizedBox(width: 8),
               TextButton(
                 onPressed: () async {
-                  final ok = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('단어장 비우기'),
-                      content:
-                          const Text('단어장의 모든 단어를 비울까요?'),
-                      actions: [
-                        TextButton(
-                            onPressed: () =>
-                                Navigator.of(ctx).pop(false),
-                            child: const Text('취소')),
-                        FilledButton(
-                            onPressed: () => Navigator.of(ctx).pop(true),
-                            child: const Text('비우기')),
-                      ],
-                    ),
+                  final ok = await showConfirm(
+                    context,
+                    title: '단어장 비우기',
+                    message: '저장된 모든 단어가 사라져요.\n계속할까요?',
+                    confirmLabel: '비우기',
+                    cancelLabel: '취소',
+                    destructive: true,
+                    icon: Icons.star_border_rounded,
                   );
-                  if (ok == true) await Store.instance.clearWordbook();
+                  if (ok) await Store.instance.clearWordbook();
                 },
                 child: const Text('전체 비우기'),
               ),
