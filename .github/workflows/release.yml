@@ -13,7 +13,7 @@ env:
   BUILD_NUMBER: ${{ github.run_number }}
   # Play Console 서비스 계정 셋업이 끝나면 'true' 로 바꿔서 자동 업로드 활성화.
   # 그 전까지는 .aab 만 빌드해서 Actions artifact 로 받아 수동 업로드.
-  ENABLE_PLAY_UPLOAD: 'false'
+  ENABLE_PLAY_UPLOAD: 'true'
 
 jobs:
   android:
