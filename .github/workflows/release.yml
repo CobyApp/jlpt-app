@@ -145,30 +145,26 @@ jobs:
         env:
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
-          # CI 에 Apple ID 가 없으므로 Manual signing 강제 + App Store profile/
-          # Apple Distribution identity 명시.
+          # 1) pbxproj 의 CODE_SIGN_STYLE 을 Manual 로 (모든 occurrence).
           PBX=ios/Runner.xcodeproj/project.pbxproj
-
-          # 1) CODE_SIGN_STYLE Automatic → Manual
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBX"
 
-          # 2) DEVELOPMENT_TEAM 강제
-          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = $IOS_TEAM_ID;/g" "$PBX"
+          # 2) Release.xcconfig 에 Manual signing 설정 주입.
+          #    xcconfig 가 pbxproj 보다 우선 적용되므로 가장 안정적.
+          cat >> ios/Flutter/Release.xcconfig <<EOF
 
-          # 3) CODE_SIGN_IDENTITY[sdk=iphoneos*] = "iPhone Developer" 같은
-          #    조건부 dev identity 도 모두 "Apple Distribution" 으로 교체.
-          sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer";/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";/g' "$PBX"
-          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "Apple Distribution";/g' "$PBX"
+          // CI 자동 주입 — Manual signing
+          CODE_SIGN_STYLE = Manual
+          DEVELOPMENT_TEAM = $IOS_TEAM_ID
+          PROVISIONING_PROFILE_SPECIFIER = $PROFILE_NAME
+          CODE_SIGN_IDENTITY = Apple Distribution
+          CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution
+          EOF
 
-          # 4) PROVISIONING_PROFILE_SPECIFIER 추가 (Manual 행 뒤에). 없을 때만.
-          if ! grep -q "PROVISIONING_PROFILE_SPECIFIER" "$PBX"; then
-            sed -i '' \
-              "s/CODE_SIGN_STYLE = Manual;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\";\n\t\t\t\tCODE_SIGN_IDENTITY = \"Apple Distribution\";/g" \
-              "$PBX"
-          fi
-
-          echo "--- after sed ---"
-          grep -E "CODE_SIGN_STYLE|PROVISIONING_PROFILE_SPECIFIER|CODE_SIGN_IDENTITY|DEVELOPMENT_TEAM" "$PBX" | head -30
+          echo "--- Release.xcconfig ---"
+          cat ios/Flutter/Release.xcconfig
+          echo "--- pbxproj CODE_SIGN_STYLE ---"
+          grep "CODE_SIGN_STYLE" "$PBX"
 
       - name: Flutter pub get
         run: flutter pub get
