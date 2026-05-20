@@ -326,8 +326,18 @@ class _WordlistPageState extends State<WordlistPage> {
     );
   }
 
+  static final _kanjiCharRe = RegExp(r'[一-龯々ヶ]');
+
   Widget _wordCard(VocabEntry e, int freq) {
     final saved = Store.instance.isInWordbook(e.w);
+    // 한자별 음/뜻 추출 — 단어장 카드와 같은 형식.
+    final hanjas = <(String, String, String)>[];
+    for (final ch in e.w.split('')) {
+      if (!_kanjiCharRe.hasMatch(ch)) continue;
+      final v = _kanjiKo[ch];
+      if (v == null) continue;
+      hanjas.add((ch, v.isNotEmpty ? v[0] : '', v.length > 1 ? v[1] : ''));
+    }
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -337,6 +347,7 @@ class _WordlistPageState extends State<WordlistPage> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -365,12 +376,66 @@ class _WordlistPageState extends State<WordlistPage> {
           const SizedBox(height: 6),
           Expanded(
             child: Text(
-              (e.mKo?.isNotEmpty == true) ? e.mKo! : (e.m.isEmpty ? '(의미 없음)' : e.m),
+              (e.mKo?.isNotEmpty == true)
+                  ? e.mKo!
+                  : (e.m.isEmpty ? '(의미 없음)' : e.m),
               style: const TextStyle(fontSize: 13, height: 1.4),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (hanjas.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: hanjas
+                  .map((h) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(h.$1,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.1,
+                                  color: ink,
+                                )),
+                            const SizedBox(width: 5),
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (h.$2.isNotEmpty)
+                                  Text(h.$2,
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF1D4ED8),
+                                        height: 1.1,
+                                      )),
+                                if (h.$3.isNotEmpty)
+                                  Text(h.$3,
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        color: textMuted,
+                                        height: 1.2,
+                                      )),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
           const SizedBox(height: 6),
           Text('$freq개 문제 등장',
               style: const TextStyle(fontSize: 11, color: textMuted)),
