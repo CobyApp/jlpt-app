@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.35.7'
+  FLUTTER_VERSION: '3.44.0'
   # CI 가 빌드할 때마다 단조 증가하는 build number. TestFlight / Play 가 같은
   # number 를 두 번 받아주지 않으므로 매번 새 값이 필요. GITHUB_RUN_NUMBER 는
   # repo 차원에서 단조 증가하므로 충돌 없음.
