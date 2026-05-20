@@ -112,61 +112,44 @@ class _ExamPageState extends State<ExamPage> {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             children: [
               _hero(exam, readingQs, listenQs, totalQ),
-              // hero → 액션 행 간격 최소화 (영역별에서 너무 멀어 보이던 문제)
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  if (!_isCategoryDrill)
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () => context.push(
-                            '/exam/${exam.testId}/q/1?from=1&to=$readingQs'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: accentPrimary,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12),
+              const SizedBox(height: 8),
+              // 영역별 보기 헤더처럼 심플한 한 줄 — 우측에 토글 텍스트 버튼만.
+              // 아무것도 선택 안 했으면 "전체 선택", 하나라도 있으면 "선택 해제".
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () {
+                        setState(() {
+                          if (_selected.isEmpty) {
+                            for (final s in sections) _selected.add(s.key);
+                            for (final sub in listenSubs) {
+                              _selected.add('listen:${sub.order}');
+                            }
+                          } else {
+                            _selected.clear();
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 4),
+                        child: Text(
+                          _selected.isEmpty ? '전체 선택' : '선택 해제',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: brandPrimary,
+                          ),
                         ),
-                        child: const Text('▶ 전체 시작'),
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: TextButton(
-                        onPressed: _selected.isEmpty
-                            ? null
-                            : () => setState(_selected.clear),
-                        style: TextButton.styleFrom(
-                          alignment: Alignment.centerLeft,
-                          padding: EdgeInsets.zero,
-                        ),
-                        child: const Text('선택 해제'),
                       ),
                     ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        for (final s in sections) _selected.add(s.key);
-                        for (final sub in listenSubs) {
-                          _selected.add('listen:${sub.order}');
-                        }
-                      });
-                    },
-                    child: const Text('전체 선택'),
-                  ),
-                ],
-              ),
-              // 일반 회차에서만 선택 해제 별도 행 (전체 시작 버튼이 위 행에 있어서)
-              if (!_isCategoryDrill && _selected.isNotEmpty)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () => setState(_selected.clear),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                    ),
-                    child: const Text('선택 해제'),
-                  ),
+                  ],
                 ),
+              ),
               ...(_isCategoryDrill
                   ? [_sectionGroup(context, exam, '회차', sections, isListen: false)]
                   : orderedGroups
