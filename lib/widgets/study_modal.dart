@@ -1,7 +1,12 @@
-/// 단어 플래시카드 학습 모달.
-/// - 카드를 탭 → 뜻 공개
-/// - "또" / "건너뛰기" / "쉬워요" 로 채점
-/// - level/seen/correct/wrong 가 자동 갱신
+/// 단어 플래시카드 학습 모달 — 루프 방식.
+///
+/// 흐름:
+///  1. 카드 탭 → 뜻 공개
+///  2. "몰라요" → 큐 맨 뒤로 이동 (나중에 다시 나옴)
+///  3. "알아요" → 큐에서 제거
+///  4. 큐가 빌 때까지 반복 → 완료 화면
+///
+/// SRS 도 함께 갱신: 알아요 = easy, 몰라요 = again.
 library;
 
 import 'dart:math';
@@ -52,24 +57,23 @@ class StudyModal extends StatefulWidget {
   State<StudyModal> createState() => _StudyModalState();
 }
 
-class _Stats {
-  int easy = 0;
-  int again = 0;
-  int skip = 0;
-}
-
 class _StudyModalState extends State<StudyModal>
     with SingleTickerProviderStateMixin {
+  // 현재 큐 (앞에서 꺼내 알아요면 제거 / 몰라요면 끝으로).
   late List<VocabEntry> _queue;
-  int _i = 0;
+  // 통계
+  int _totalWords = 0;
+  int _knownCount = 0; // 알아요로 큐에서 제거된 수 (= 학습 완료된 단어 수)
+  int _unknownTaps = 0; // 몰라요 누른 누적 횟수 (한 단어에 여러 번 가능)
   bool _revealed = false;
-  final _stats = _Stats();
+
   static final _kanjiRe = RegExp(r'[一-龯々ヶ]');
 
   @override
   void initState() {
     super.initState();
     _queue = _orderWords(widget.words, widget.order);
+    _totalWords = _queue.length;
   }
 
   List<VocabEntry> _orderWords(List<VocabEntry> ws, StudyOrder order) {
@@ -104,20 +108,27 @@ class _StudyModalState extends State<StudyModal>
     return annotated.map((x) => x.w).toList();
   }
 
-  Future<void> _act(SrsAction action) async {
-    final w = _queue[_i];
-    await Store.instance.recordSrs(w.w, action);
-    switch (action) {
-      case SrsAction.again:
-        _stats.again++;
-      case SrsAction.easy:
-        _stats.easy++;
-      case SrsAction.skip:
-        _stats.skip++;
-    }
+  Future<void> _onKnow() async {
+    if (_queue.isEmpty) return;
+    final w = _queue.removeAt(0);
+    await Store.instance.recordSrs(w.w, SrsAction.easy);
     if (mounted) {
       setState(() {
-        _i++;
+        _knownCount++;
+        _revealed = false;
+      });
+    }
+  }
+
+  Future<void> _onUnknown() async {
+    if (_queue.isEmpty) return;
+    // 큐 첫 단어를 맨 뒤로 보낸다 → 다른 카드 보고 나서 다시 등장.
+    final w = _queue.removeAt(0);
+    _queue.add(w);
+    await Store.instance.recordSrs(w.w, SrsAction.again);
+    if (mounted) {
+      setState(() {
+        _unknownTaps++;
         _revealed = false;
       });
     }
@@ -125,8 +136,9 @@ class _StudyModalState extends State<StudyModal>
 
   @override
   Widget build(BuildContext context) {
-    final total = _queue.length;
-    final done = _i >= total;
+    final done = _queue.isEmpty;
+    final progress = _totalWords == 0 ? 0.0 : (_knownCount / _totalWords);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -139,21 +151,24 @@ class _StudyModalState extends State<StudyModal>
             Text(widget.title,
                 style: const TextStyle(
                     fontSize: 14, fontWeight: FontWeight.w800)),
-            Text(done ? '완료' : '${_i + 1} / $total',
-                style: const TextStyle(fontSize: 11, color: textMuted)),
+            Text(
+              done
+                  ? '완료'
+                  : '$_knownCount / $_totalWords 외움 · ${_queue.length}개 남음',
+              style: const TextStyle(fontSize: 11, color: textMuted),
+            ),
           ],
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(3),
           child: LinearProgressIndicator(
-            value: total == 0 ? 0 : (_i / total).clamp(0, 1),
+            value: progress.clamp(0.0, 1.0),
             backgroundColor: const Color(0xFFE5E7EB),
-            color: accentPrimary,
+            color: brandPrimary,
             minHeight: 3,
           ),
         ),
       ),
-      // 홈인디케이터 영역까지 안전하게 패딩 확보.
       body: SafeArea(
         top: false,
         minimum: const EdgeInsets.only(bottom: 12),
@@ -169,19 +184,17 @@ class _StudyModalState extends State<StudyModal>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('🎉',
-                style: TextStyle(fontSize: 56)),
+            const Text('🎉', style: TextStyle(fontSize: 56)),
             const SizedBox(height: 8),
-            const Text('학습 완료',
-                style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w900)),
+            const Text('전부 외웠어요!',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
             const SizedBox(height: 14),
-            _statRow('쉬워요', _stats.easy, const Color(0xFF15803D)),
-            _statRow('건너뜀', _stats.skip, textMuted),
-            _statRow('또 보기', _stats.again, const Color(0xFFB91C1C)),
+            _statRow('외운 단어', _totalWords, const Color(0xFF15803D)),
+            _statRow('몰라요 탭 횟수', _unknownTaps,
+                const Color(0xFFB91C1C)),
             const SizedBox(height: 22),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: accentPrimary),
+              style: FilledButton.styleFrom(backgroundColor: brandPrimary),
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('완료'),
             ),
@@ -214,8 +227,7 @@ class _StudyModalState extends State<StudyModal>
   }
 
   Widget _card() {
-    final w = _queue[_i];
-    final srs = Store.instance.getSrs(w.w);
+    final w = _queue[0];
     final hanjas = <(String, String, String)>[];
     for (final ch in w.w.split('')) {
       if (!_kanjiRe.hasMatch(ch)) continue;
@@ -234,7 +246,7 @@ class _StudyModalState extends State<StudyModal>
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
                 child: Container(
-                  key: ValueKey('${w.w}/$_revealed'),
+                  key: ValueKey('${w.w}/$_revealed/${_queue.length}'),
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -242,168 +254,125 @@ class _StudyModalState extends State<StudyModal>
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: cardBorder),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (srs.level >= 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: srs.level >= 5
-                                    ? const Color(0xFFDCFCE7)
-                                    : const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                srs.level >= 5
-                                    ? '✓ 마스터'
-                                    : 'Lv.${srs.level}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: srs.level >= 5
-                                      ? const Color(0xFF15803D)
-                                      : const Color(0xFF374151),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              w.w,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 44,
-                                fontWeight: FontWeight.w900,
-                                height: 1.1,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _revealed ? (w.r.isEmpty ? '—' : w.r) : '???',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: _revealed
-                                    ? textMuted
-                                    : const Color(0xFFD1D5DB),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child: _revealed
-                                  ? Text(
-                                      (w.mKo?.isNotEmpty == true)
-                                          ? w.mKo!
-                                          : (w.m.isEmpty ? '(의미 없음)' : w.m),
-                                      key: const ValueKey('m'),
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        height: 1.5,
-                                      ),
-                                    )
-                                  : const Text(
-                                      '카드를 탭해서 뜻 보기',
-                                      key: ValueKey('hint'),
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: textMuted,
-                                      ),
-                                    ),
-                            ),
-                            if (_revealed && hanjas.isNotEmpty) ...[
-                              const SizedBox(height: 14),
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: hanjas
-                                    .map((h) => Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFF3F4F6),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(h.$1,
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w700)),
-                                              const SizedBox(width: 6),
-                                              Text(h.$2,
-                                                  style: const TextStyle(
-                                                      fontSize: 11,
-                                                      color:
-                                                          Color(0xFF1D4ED8),
-                                                      fontWeight:
-                                                          FontWeight.w700)),
-                                              const SizedBox(width: 4),
-                                              Text(h.$3,
-                                                  style: const TextStyle(
-                                                      fontSize: 11,
-                                                      color: textMuted)),
-                                            ],
-                                          ),
-                                        ))
-                                    .toList(),
-                              ),
-                            ],
-                          ],
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          w.w,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w900,
+                            height: 1.1,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          _revealed ? (w.r.isEmpty ? '—' : w.r) : '???',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: _revealed
+                                ? textMuted
+                                : const Color(0xFFD1D5DB),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: _revealed
+                              ? Text(
+                                  (w.mKo?.isNotEmpty == true)
+                                      ? w.mKo!
+                                      : (w.m.isEmpty ? '(의미 없음)' : w.m),
+                                  key: const ValueKey('m'),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    height: 1.5,
+                                  ),
+                                )
+                              : const Text(
+                                  '카드를 탭해서 뜻 보기',
+                                  key: ValueKey('hint'),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: textMuted,
+                                  ),
+                                ),
+                        ),
+                        if (_revealed && hanjas.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: hanjas
+                                .map((h) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF3F4F6),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(h.$1,
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700)),
+                                          const SizedBox(width: 6),
+                                          Text(h.$2,
+                                              style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF1D4ED8),
+                                                  fontWeight: FontWeight.w700)),
+                                          const SizedBox(width: 4),
+                                          Text(h.$3,
+                                              style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: textMuted)),
+                                        ],
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 16),
-          // 3 행동 버튼 — 동일한 라운드/높이로 통일, 색만 의미별로 차이.
-          // 또 보기: 빨강 톤 / 건너뛰기: 중성 회색 / 쉬워요: 초록 톤
+          // 2 행동 — 몰라요(나중에 다시) / 알아요(완료).
+          // 뒤집기 전이라도 양쪽 다 가능 (뒤집기는 학습 도움일 뿐).
           Row(
             children: [
-              Expanded(child: _srsButton(
-                label: '또 보기',
-                bg: const Color(0xFFFEF2F2),
-                fg: const Color(0xFFB91C1C),
-                onPressed: () {
-                  if (!_revealed) setState(() => _revealed = true);
-                  _act(SrsAction.again);
-                },
-              )),
-              const SizedBox(width: 8),
-              Expanded(child: _srsButton(
-                label: '건너뛰기',
-                bg: const Color(0xFFF3F4F6),
-                fg: const Color(0xFF4B5563),
-                onPressed: () => _act(SrsAction.skip),
-              )),
-              const SizedBox(width: 8),
-              Expanded(child: _srsButton(
-                label: '쉬워요',
-                bg: const Color(0xFF15803D),
-                fg: Colors.white,
-                onPressed: () {
-                  if (!_revealed) setState(() => _revealed = true);
-                  _act(SrsAction.easy);
-                },
-              )),
+              Expanded(
+                child: _srsButton(
+                  label: '몰라요',
+                  bg: const Color(0xFFFEF2F2),
+                  fg: const Color(0xFFB91C1C),
+                  onPressed: () {
+                    if (!_revealed) setState(() => _revealed = true);
+                    _onUnknown();
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _srsButton(
+                  label: '알아요',
+                  bg: const Color(0xFF15803D),
+                  fg: Colors.white,
+                  onPressed: _onKnow,
+                ),
+              ),
             ],
           ),
         ],
@@ -411,7 +380,6 @@ class _StudyModalState extends State<StudyModal>
     );
   }
 
-  /// 외우기 액션 3종 — 동일한 모양 (라운드/높이/굵기), 색만 의미별로.
   Widget _srsButton({
     required String label,
     required Color bg,
@@ -425,12 +393,12 @@ class _StudyModalState extends State<StudyModal>
         borderRadius: BorderRadius.circular(14),
         onTap: onPressed,
         child: SizedBox(
-          height: 52,
+          height: 54,
           child: Center(
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: FontWeight.w900,
                 color: fg,
                 letterSpacing: 0.2,
