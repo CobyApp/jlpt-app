@@ -253,22 +253,59 @@ class _WordbookPageState extends State<WordbookPage> {
             ),
           ),
           if (hanjas.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 4,
               runSpacing: 4,
               children: hanjas
                   .map((h) => Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text('${h.$1} ${h.$2}',
-                            style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF1D4ED8))),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              h.$1,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                height: 1.1,
+                                color: ink,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (h.$2.isNotEmpty)
+                                  Text(
+                                    h.$2,
+                                    style: const TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1D4ED8),
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                if (h.$3.isNotEmpty)
+                                  Text(
+                                    h.$3,
+                                    style: const TextStyle(
+                                      fontSize: 9.5,
+                                      color: textMuted,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ))
                   .toList(),
             ),
