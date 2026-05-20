@@ -373,47 +373,71 @@ class _StudyModalState extends State<StudyModal>
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
+          // 3 행동 버튼 — 동일한 라운드/높이로 통일, 색만 의미별로 차이.
+          // 또 보기: 빨강 톤 / 건너뛰기: 중성 회색 / 쉬워요: 초록 톤
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFB91C1C),
-                    side: const BorderSide(color: Color(0xFFFCA5A5)),
-                  ),
-                  onPressed: () {
-                    if (!_revealed) setState(() => _revealed = true);
-                    _act(SrsAction.again);
-                  },
-                  child: const Text('또 보기'),
-                ),
-              ),
+              Expanded(child: _srsButton(
+                label: '또 보기',
+                bg: const Color(0xFFFEF2F2),
+                fg: const Color(0xFFB91C1C),
+                onPressed: () {
+                  if (!_revealed) setState(() => _revealed = true);
+                  _act(SrsAction.again);
+                },
+              )),
               const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    _act(SrsAction.skip);
-                  },
-                  child: const Text('건너뛰기'),
-                ),
-              ),
+              Expanded(child: _srsButton(
+                label: '건너뛰기',
+                bg: const Color(0xFFF3F4F6),
+                fg: const Color(0xFF4B5563),
+                onPressed: () => _act(SrsAction.skip),
+              )),
               const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF15803D),
-                  ),
-                  onPressed: () {
-                    if (!_revealed) setState(() => _revealed = true);
-                    _act(SrsAction.easy);
-                  },
-                  child: const Text('쉬워요'),
-                ),
-              ),
+              Expanded(child: _srsButton(
+                label: '쉬워요',
+                bg: const Color(0xFF15803D),
+                fg: Colors.white,
+                onPressed: () {
+                  if (!_revealed) setState(() => _revealed = true);
+                  _act(SrsAction.easy);
+                },
+              )),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// 외우기 액션 3종 — 동일한 모양 (라운드/높이/굵기), 색만 의미별로.
+  Widget _srsButton({
+    required String label,
+    required Color bg,
+    required Color fg,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onPressed,
+        child: SizedBox(
+          height: 52,
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: fg,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
