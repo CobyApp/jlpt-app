@@ -23,7 +23,7 @@ App Store Connect / Play Console 에 등록할 모든 텍스트를 한 자리에
 
 ### 부제목 (Subtitle, 30자)
 ```
-JLPT N1 한 권으로 끝내기
+나만의 N1 노트, 엔원노트
 ```
 
 ### 프로모션 텍스트 (Promotional Text, 170자)
