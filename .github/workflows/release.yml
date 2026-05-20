@@ -141,6 +141,31 @@ jobs:
             -e "s/\${IOS_PROVISIONING_PROFILE_NAME}/$PROFILE_NAME/g" \
             ios/ExportOptions.plist
 
+      - name: Configure Xcode project for manual signing
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          # CI 에서는 Xcode 자동 서명이 dev profile 을 찾으려 시도하므로
+          # Manual 서명 + 우리가 base64 로 설치한 App Store profile 만 쓰도록
+          # pbxproj 에서 직접 치환.
+          PBX=ios/Runner.xcodeproj/project.pbxproj
+          # 1) CODE_SIGN_STYLE Automatic → Manual (모든 occurrence)
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBX"
+          # 2) DEVELOPMENT_TEAM 명시 (이미 있지만 보존)
+          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = $IOS_TEAM_ID;/g" "$PBX"
+          # 3) Runner 타깃의 Release config 에 provisioning profile + code sign
+          #    identity 명시. PRODUCT_NAME 기준으로 Runner 의 Release 빌드세팅에만
+          #    PROVISIONING_PROFILE_SPECIFIER + CODE_SIGN_IDENTITY 가 들어가도록
+          #    간단한 인라인 시도 — 없으면 추가.
+          if ! grep -q "PROVISIONING_PROFILE_SPECIFIER" "$PBX"; then
+            sed -i '' \
+              "s/CODE_SIGN_STYLE = Manual;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\";\n\t\t\t\tCODE_SIGN_IDENTITY = \"Apple Distribution\";/g" \
+              "$PBX"
+          fi
+          # 검증 출력
+          echo "--- after sed ---"
+          grep -E "CODE_SIGN_STYLE|PROVISIONING_PROFILE_SPECIFIER|CODE_SIGN_IDENTITY|DEVELOPMENT_TEAM" "$PBX" | head -20
+
       - name: Flutter pub get
         run: flutter pub get
 
