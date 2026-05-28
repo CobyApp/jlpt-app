@@ -335,18 +335,90 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Future<void> _confirmReset() async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('진도 초기화'),
-        content: const Text(
-            '회차별 풀이 진도와 청해 진도가 모두 지워집니다.\n단어장 ★ 표시는 그대로 유지됩니다.\n진행할까요?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('취소')),
-          FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('초기화')),
-        ],
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x29000000),
+                  blurRadius: 30,
+                  offset: Offset(0, 12)),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(22, 26, 22, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  gradient: brandGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.refresh_rounded,
+                    color: Colors.white, size: 28),
+              ),
+              const SizedBox(height: 14),
+              const Text('진도 초기화',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: ink)),
+              const SizedBox(height: 8),
+              const Text(
+                '회차별 풀이 진도와 청해 진도가\n모두 지워집니다.\n단어장 ★ 표시는 유지돼요.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 13,
+                    height: 1.55,
+                    color: textMuted,
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      style: TextButton.styleFrom(
+                        foregroundColor: ink2,
+                        backgroundColor: const Color(0xFFF3F4F6),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                        textStyle: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14),
+                      ),
+                      child: const Text('취소'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: brandPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                        textStyle: const TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 14),
+                      ),
+                      child: const Text('초기화하기'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
     if (ok == true) await Store.instance.clearAllProgress();
