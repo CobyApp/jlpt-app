@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bjt-web",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "9090", "--directory", "/Users/coby/Git/BJT/build/web"],
+      "port": 9090
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/models.dart';
+import '../models/study.dart';
 import 'categories.dart';
 
 class DataLoader {
@@ -17,6 +18,7 @@ class DataLoader {
   final Map<String, Future<Exam>> _examP = {};
   Future<List<VocabEntry>>? _vocabP;
   Future<Map<String, List<String>>>? _kanjiKoP;
+  Future<StudyContent>? _studyP;
 
   Future<IndexFile> loadIndex() {
     return _indexP ??= _fetchJson('assets/data/index.json')
@@ -47,6 +49,12 @@ class DataLoader {
       final list = (j as List).cast<Map<String, dynamic>>();
       return list.map(VocabEntry.fromJson).toList();
     });
+  }
+
+  /// 학습 콘텐츠 (단어/표현/문법/꿀팁).
+  Future<StudyContent> loadStudy() {
+    return _studyP ??= _fetchJson('assets/data/study.json')
+        .then((j) => StudyContent.fromJson(j as Map<String, dynamic>));
   }
 
   /// kanji_ko.json: { "漢": ["음", "뜻"], ... }
